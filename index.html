@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MTG Tribal Break Calculator & Simulator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-primary: #0d1117;
+  --bg-secondary: #161b22;
+  --bg-card: #1c2128;
+  --bg-input: #21262d;
+  --bg-hover: #30363d;
+  --border: #30363d;
+  --border-focus: #58a6ff;
+  --text-primary: #e6edf3;
+  --text-secondary: #8b949e;
+  --text-muted: #6e7681;
+  --accent: #58a6ff;
+  --accent-hover: #79c0ff;
+  --accent-bg: rgba(88, 166, 255, 0.1);
+  --success: #3fb950;
+  --success-bg: rgba(63, 185, 80, 0.1);
+  --warning: #d29922;
+  --warning-bg: rgba(210, 153, 34, 0.1);
+  --danger: #f85149;
+  --danger-bg: rgba(248, 81, 73, 0.1);
+  --gold: #f0c040;
+  --mythic: #e86020;
+  --rare: #c8a84e;
+  --uncommon: #a0a8b0;
+  --common: #555;
+  --radius: 8px;
+  --radius-sm: 4px;
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --transition: 0.2s ease;
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 14px; scroll-behavior: smooth; }
+body { font-family: var(--font); background: var(--bg-primary); color: var(--text-primary); line-height: 1.5; min-height: 100vh; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { color: var(--accent-hover); text-decoration: underline; }
+.app-header { background: linear-gradient(135deg, #1a1e2e 0%, #0d1117 100%); border-bottom: 1px solid var(--border); padding: 1.5rem 2rem; text-align: center; }
+.header-content h1 { font-size: 1.8rem; font-weight: 700; letter-spacing: -0.02em; background: linear-gradient(135deg, var(--accent), #a371f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.header-content .icon { font-size: 1.5rem; }
+.subtitle { color: var(--text-secondary); font-size: 0.95rem; margin-top: 0.25rem; }
+.app-main { max-width: 1100px; margin: 0 auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem; }
+.card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.card-header { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); background: var(--bg-secondary); }
+.card-header h2 { font-size: 1.15rem; font-weight: 600; }
+.card-body { padding: 1.25rem; }
+.help-tip { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: var(--bg-hover); color: var(--text-secondary); font-size: 0.75rem; font-weight: 700; cursor: help; }
+.btn { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-hover); color: var(--text-primary); font-family: var(--font); font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: all var(--transition); white-space: nowrap; }
+.btn:hover:not(:disabled) { background: #3a424b; border-color: #484f58; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: #000; font-weight: 600; }
+.btn-primary:hover:not(:disabled) { background: var(--accent-hover); border-color: var(--accent-hover); }
+.btn-accent { background: linear-gradient(135deg, #a371f7, #58a6ff); border: none; color: #fff; font-weight: 600; }
+.btn-accent:hover:not(:disabled) { filter: brightness(1.1); }
+.btn-sm { padding: 0.35rem 0.75rem; font-size: 0.8rem; }
+.btn-danger { color: var(--danger); }
+.btn-danger:hover:not(:disabled) { background: var(--danger-bg); border-color: var(--danger); }
+input[type="text"], input[type="number"], select, textarea { background: var(--bg-input); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-family: var(--font); font-size: 0.875rem; padding: 0.5rem 0.75rem; transition: border-color var(--transition); width: 100%; }
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--border-focus); box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.15); }
+select:disabled { opacity: 0.5; cursor: not-allowed; }
+.small-input { width: 80px; }
+label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--text-secondary); margin-bottom: 0.25rem; }
+.input-group { display: flex; flex-direction: column; }
+.roster-input-row { display: flex; gap: 0.75rem; align-items: flex-end; flex-wrap: wrap; margin-bottom: 1rem; }
+.roster-input-row .input-group:nth-child(1) { flex: 0 0 70px; }
+.roster-input-row .input-group:nth-child(2) { flex: 1; min-width: 200px; }
+.roster-input-row .input-group:nth-child(3) { flex: 0 0 180px; }
+.set-autocomplete-wrapper { position: relative; }
+.suggestions-dropdown { position: absolute; top: 100%; left: 0; right: 0; z-index: 100; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-sm); max-height: 260px; overflow-y: auto; box-shadow: var(--shadow); }
+.suggestions-dropdown.hidden { display: none; }
+.suggestion-item { padding: 0.5rem 0.75rem; cursor: pointer; font-size: 0.875rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; }
+.suggestion-item:last-child { border-bottom: none; }
+.suggestion-item:hover, .suggestion-item.active { background: var(--accent-bg); color: var(--accent); }
+.suggestion-code { color: var(--text-muted); font-family: monospace; font-size: 0.8rem; }
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th { text-align: left; padding: 0.5rem 0.75rem; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+.data-table td { padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border); font-size: 0.875rem; }
+.data-table tr:hover td { background: rgba(255, 255, 255, 0.02); }
+.status-badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 10px; font-size: 0.75rem; font-weight: 500; }
+.status-cached { background: var(--success-bg); color: var(--success); }
+.status-loading { background: var(--warning-bg); color: var(--warning); }
+.status-error { background: var(--danger-bg); color: var(--danger); }
+.empty-state { text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.9rem; }
+.roster-summary { display: flex; gap: 1.5rem; padding: 0.75rem 0 0; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); }
+.mode-toggle { display: flex; gap: 0.25rem; background: var(--bg-input); border-radius: var(--radius-sm); padding: 2px; }
+.mode-toggle .btn-sm.active { background: var(--accent); color: #000; border-color: var(--accent); }
+.manual-controls { display: flex; gap: 0.75rem; align-items: flex-end; margin-bottom: 1rem; }
+.manual-controls .input-group { flex: 1; }
+.mass-entry-wrapper { margin-bottom: 1rem; padding: 0.75rem; background: var(--bg-secondary); border-radius: var(--radius-sm); border: 1px solid var(--border); }
+.mass-entry-wrapper label { margin-bottom: 0.4rem; }
+.mass-entry-wrapper textarea { margin-bottom: 0.5rem; resize: vertical; }
+.spots-list { max-height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.25rem; }
+.spot-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.6rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.875rem; cursor: grab; }
+.spot-item:active { cursor: grabbing; }
+.spot-number { font-weight: 700; color: var(--text-muted); font-size: 0.75rem; min-width: 28px; }
+.spot-label { flex: 1; font-weight: 500; }
+.spot-ev { color: var(--success); font-weight: 600; font-family: monospace; min-width: 60px; text-align: right; }
+.spot-actions { display: flex; gap: 0.25rem; }
+.spot-actions .btn { padding: 0.2rem 0.4rem; font-size: 0.75rem; }
+.spots-summary { display: flex; gap: 1rem; align-items: center; padding: 0.75rem 0 0; font-size: 0.85rem; color: var(--text-secondary); }
+.spot-note { font-size: 0.75rem; color: var(--text-muted); }
+.insurance-row { display: flex; align-items: center; gap: 0.5rem; margin-top: 1rem; padding: 0.75rem; background: var(--bg-secondary); border-radius: var(--radius-sm); border: 1px solid var(--border); }
+.insurance-row label { margin: 0; font-size: 0.875rem; font-weight: 500; color: var(--text-primary); white-space: nowrap; }
+.insurance-row .small-input { width: 90px; }
+.ev-controls { display: flex; gap: 0.75rem; margin-bottom: 1rem; }
+.ev-display { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
+.ev-card { flex: 1; padding: 1rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius); text-align: center; }
+.ev-card.highlight { border-color: var(--accent); background: var(--accent-bg); }
+.ev-label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--text-secondary); margin-bottom: 0.25rem; }
+.ev-value { display: block; font-size: 1.75rem; font-weight: 700; font-family: monospace; color: var(--success); }
+.ev-card.highlight .ev-value { color: var(--accent); }
+.sim-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 0.75rem; }
+.sim-spot-card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.sim-spot-header { display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border); background: var(--bg-input); }
+.sim-spot-name { font-weight: 600; font-size: 0.9rem; }
+.sim-spot-value { font-weight: 700; font-family: monospace; color: var(--success); }
+.sim-spot-value.insured { color: var(--warning); }
+.sim-spot-cards { padding: 0.5rem; display: flex; flex-wrap: wrap; gap: 0.35rem; max-height: 200px; overflow-y: auto; }
+.sim-card-chip { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.2rem 0.5rem; border-radius: var(--radius-sm); font-size: 0.75rem; border: 1px solid var(--border); background: var(--bg-input); }
+.sim-card-chip.rarity-mythic { border-color: var(--mythic); color: var(--mythic); }
+.sim-card-chip.rarity-rare { border-color: var(--rare); color: var(--rare); }
+.sim-card-chip.rarity-uncommon { border-color: var(--uncommon); }
+.sim-card-chip.rarity-common { border-color: var(--common); }
+.sim-card-price { font-family: monospace; font-weight: 600; }
+.sim-top-hits { display: flex; gap: 0.5rem; padding: 0.5rem; overflow-x: auto; }
+.sim-card-img { width: 100px; border-radius: 4px; transition: transform var(--transition); cursor: pointer; }
+.sim-card-img:hover { transform: scale(1.8); z-index: 10; position: relative; }
+#loading-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; }
+#loading-overlay.hidden { display: none; }
+.spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 1rem; }
+@keyframes spin { to { transform: rotate(360deg); } }
+#loading-text { color: var(--text-secondary); font-size: 0.95rem; }
+#toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 2000; display: flex; flex-direction: column; gap: 0.5rem; }
+.toast { padding: 0.6rem 1rem; border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 500; box-shadow: var(--shadow); animation: slideIn 0.3s ease; max-width: 360px; }
+.toast-success { background: var(--success-bg); color: var(--success); border: 1px solid var(--success); }
+.toast-error { background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger); }
+.toast-info { background: var(--accent-bg); color: var(--accent); border: 1px solid var(--accent); }
+@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+.app-footer { text-align: center; padding: 1.5rem; color: var(--text-muted); font-size: 0.8rem; border-top: 1px solid var(--border); margin-top: 2rem; }
+.app-footer p + p { margin-top: 0.25rem; }
+.hidden { display: none !important; }
+@media (max-width: 640px) { .roster-input-row { flex-direction: column; } .roster-input-row .input-group { flex: 1 1 100% !important; } .ev-display { flex-direction: column; } .sim-grid { grid-template-columns: 1fr; } .app-main { padding: 1rem; } }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+.spot-item.drag-over { border-color: var(--accent); background: var(--accent-bg); }
+.spot-item.spot-bulk { background: var(--bg-input); border-style: dashed; opacity: 0.7; }
+.spot-item.spot-last { background: var(--warning-bg); border-color: var(--warning); }
+</style>
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-content">
+      <h1><span class="icon">&#9876;</span> MTG Tribal Break Calculator</h1>
+      <p class="subtitle">Evaluate EV &amp; Simulate Mixed-Pack Breaks</p>
+    </div>
+  </header>
+
+  <main class="app-main">
+    <section id="roster-section" class="card">
+      <div class="card-header">
+        <h2>&#x1F4E6; Break Roster</h2>
+        <span class="help-tip" title="Add sets and pack types to build your break pool. Data is fetched from Scryfall when you add a row.">?</span>
+      </div>
+      <div class="card-body">
+        <div class="roster-input-row">
+          <div class="input-group">
+            <label for="roster-qty">Qty</label>
+            <input type="number" id="roster-qty" min="1" max="100" value="6" class="small-input">
+          </div>
+          <div class="input-group set-autocomplete-wrapper">
+            <label for="roster-set">Set</label>
+            <input type="text" id="roster-set" placeholder="Type set name or code..." autocomplete="off">
+            <div id="set-suggestions" class="suggestions-dropdown hidden"></div>
+          </div>
+          <div class="input-group">
+            <label for="roster-pack">Pack Type</label>
+            <select id="roster-pack" disabled>
+              <option value="">Select a set first</option>
+            </select>
+          </div>
+          <button id="add-roster-btn" class="btn btn-primary" disabled>+ Add to Roster</button>
+        </div>
+        <div id="roster-table-wrapper">
+          <table id="roster-table" class="data-table">
+            <thead><tr><th>Qty</th><th>Set</th><th>Pack Type</th><th>Cards (est.)</th><th>Status</th><th></th></tr></thead>
+            <tbody id="roster-tbody"></tbody>
+          </table>
+          <div id="roster-empty" class="empty-state">No packs added yet. Build your break roster above.</div>
+        </div>
+        <div class="roster-summary">
+          <span id="total-packs">Total Packs: 0</span>
+          <span id="total-cards-est">Est. Cards: 0</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="spots-section" class="card">
+      <div class="card-header">
+        <h2>&#x1F3AF; Spot Assignment (100 Spots)</h2>
+        <div class="mode-toggle">
+          <button id="quick-mode-btn" class="btn btn-sm btn-accent active">Quick Mode</button>
+          <button id="manual-mode-btn" class="btn btn-sm">Manual Mode</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div id="quick-mode-panel">
+          <p class="mode-desc">Auto-analyze the Break Roster to find the most valuable tribes and types, then assign the top 100 spots.</p>
+          <button id="auto-tabulate-btn" class="btn btn-primary" disabled>&#x26A1; Auto-Tabulate Spots</button>
+          <div id="quick-results" class="hidden"></div>
+        </div>
+        <div id="manual-mode-panel" class="hidden">
+          <p class="mode-desc">Define your 100 spots manually. Use AND/OR logic: "Snake/Snail" or "Snake and Snail" claims either subtype.</p>
+          <div class="manual-controls">
+            <div class="input-group">
+              <label for="spot-name">Spot Name / Tribe</label>
+              <input type="text" id="spot-name" placeholder='e.g. "Eldrazi" or "Snake/Snail"'>
+            </div>
+            <button id="add-spot-btn" class="btn btn-primary">+ Add Spot</button>
+          </div>
+          <div class="mass-entry-wrapper">
+            <label for="mass-entry">Mass Entry (one per line)</label>
+            <textarea id="mass-entry" rows="4" placeholder='Eldrazi&#10;Human&#10;Snake/Snail&#10;Saga&#10;Class'></textarea>
+            <button id="parse-mass-btn" class="btn btn-sm">Parse &amp; Add</button>
+          </div>
+          <div id="spots-list" class="spots-list"></div>
+          <div class="spots-summary">
+            <span id="spots-count">Spots defined: 0 / 99</span>
+            <span class="spot-note">(+1 Bulk spot + Last Spot auto-assigned)</span>
+          </div>
+        </div>
+        <div class="insurance-row">
+          <label for="pack-insurance">Pack Insurance Value: $</label>
+          <input type="number" id="pack-insurance" min="0" step="0.50" value="15.00" class="small-input">
+        </div>
+      </div>
+    </section>
+
+    <section id="ev-section" class="card">
+      <div class="card-header"><h2>&#x1F4B0; EV &amp; Simulation</h2></div>
+      <div class="card-body">
+        <div class="ev-controls">
+          <button id="calc-ev-btn" class="btn btn-primary" disabled>Calculate Global EV</button>
+          <button id="simulate-btn" class="btn btn-accent" disabled>&#x1F3B2; Simulate Break</button>
+        </div>
+        <div id="global-ev-display" class="ev-display hidden">
+          <div class="ev-card">
+            <span class="ev-label">Total Pool EV</span>
+            <span id="total-ev" class="ev-value">$0.00</span>
+          </div>
+          <div class="ev-card highlight">
+            <span class="ev-label">EV Per Spot (÷100)</span>
+            <span id="per-spot-ev" class="ev-value">$0.00</span>
+          </div>
+        </div>
+        <div id="sim-results" class="hidden">
+          <h3>Simulation Results</h3>
+          <div id="sim-spots-grid" class="sim-grid"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="loading-overlay" class="hidden">
+    <div class="spinner"></div>
+    <p id="loading-text">Loading...</p>
+  </div>
+  <div id="toast-container"></div>
+
+  <footer class="app-footer">
+    <p>Data powered by <a href="https://scryfall.com" target="_blank" rel="noopener">Scryfall API</a>. Prices from TCGplayer Market.</p>
+    <p>Not affiliated with Wizards of the Coast or TCGplayer.</p>
+  </footer>
+
+<script>
+(function () {
+  'use strict';
+
+  var API_BASE = 'https://api.scryfall.com';
+  var RATE_LIMIT_MS = 110;
+  var lastRequestTime = 0;
+  var sleep = function(ms) { return new Promise(function(r) { setTimeout(r, ms); }); };
+
+  async function rateLimitedFetch(url) {
+    var now = Date.now();
+    var elapsed = now - lastRequestTime;
+    if (elapsed < RATE_LIMIT_MS) await sleep(RATE_LIMIT_MS - elapsed);
+    lastRequestTime = Date.now();
+    var res = await fetch(url);
+    if (!res.ok) { var err = await res.json().catch(function() { return {}; }); throw new Error(err.details || 'Scryfall API error: ' + res.status); }
+    return res.json();
+  }
+
+  var allSetsCache = null, fetchPromise = null;
+
+  async function fetchAllSets() {
+    if (allSetsCache) return allSetsCache;
+    if (fetchPromise) return fetchPromise;
+    fetchPromise = (async function() {
+      try {
+        var data = await rateLimitedFetch(API_BASE + '/sets');
+        var exclude = new Set(['token','memorabilia','promo','vanguard','minigame']);
+        allSetsCache = data.data.filter(function(s) { return !exclude.has(s.set_type) && s.card_count > 0; }).sort(function(a,b) { return new Date(b.released_at) - new Date(a.released_at); });
+        console.log('[Scryfall] Loaded', allSetsCache.length, 'sets');
+        return allSetsCache;
+      } catch(e) { fetchPromise = null; throw e; }
+    })();
+    return fetchPromise;
+  }
+
+  async function getRecentSets(count) {
+    var sets = await fetchAllSets();
+    var bt = new Set(['core','expansion','draft_innovation','masters','funny','box','eternal']);
+    return sets.filter(function(s) { return bt.has(s.set_type); }).slice(0, count || 10);
+  }
+
+  async function searchSets(query) {
+    var sets = await fetchAllSets();
+    var q = query.toLowerCase().trim();
+    if (!q) return [];
+    return sets.filter(function(s) { return s.name.toLowerCase().includes(q) || s.code.toLowerCase() === q || s.code.toLowerCase().startsWith(q); }).slice(0, 15);
+  }
+
+  var cardCache = new Map();
+  async function fetchSetCards(setCode) {
+    var code = setCode.toLowerCase();
+    if (cardCache.has(code)) return cardCache.get(code);
+    var cards = [], url = API_BASE + '/cards/search?q=e%3A' + encodeURIComponent(code) + '&unique=prints&order=usd&dir=desc';
+    while (url) {
+      try { var data = await rateLimitedFetch(url); cards.push.apply(cards, data.data); url = data.has_more ? data.next_page : null; }
+      catch(e) { if (e.message.includes('404')) break; throw e; }
+    }
+    cardCache.set(code, cards);
+    console.log('[Scryfall] Cached', cards.length, 'cards for', code);
+    return cards;
+  }
+
+  function getCardPrice(card, isFoil) {
+    if (!card || !card.prices) return 0;
+    if (isFoil) return parseFloat(card.prices.usd_foil) || parseFloat(card.prices.usd) || 0;
+    return parseFloat(card.prices.usd) || 0;
+  }
+
+  function getAvailableBoosterTypes(si) {
+    var t = [], rd = new Date(si.released_at);
+    if (si.set_type === 'commander') return ['Draft Booster'];
+    if (rd >= new Date('2024-02-01')) { t.push('Play Booster'); t.push('Collector Booster'); }
+    else if (rd >= new Date('2020-09-01')) { t.push('Draft Booster'); t.push('Set Booster'); t.push('Collector Booster'); }
+    else if (rd >= new Date('2019-01-01')) { t.push('Draft Booster'); t.push('Collector Booster'); }
+    else { t.push('Draft Booster'); }
+    return t;
+  }
+
+  var PP = {
+    'Play Booster': { slots: [{type:'common',count:6},{type:'uncommon',count:3},{type:'rare_mythic',count:1},{type:'wildcard',count:2,weights:{common:.6,uncommon:.25,rare:.1,mythic:.05}},{type:'guaranteed_foil',count:1,weights:{common:.4,uncommon:.35,rare:.17,mythic:.08}},{type:'land',count:1}], subsetChance:.03 },
+    'Draft Booster': { slots: [{type:'common',count:10},{type:'uncommon',count:3},{type:'rare_mythic',count:1},{type:'land',count:1}], subsetChance:0 },
+    'Set Booster': { slots: [{type:'common',count:3},{type:'uncommon',count:3},{type:'rare_mythic',count:1},{type:'wildcard',count:2,weights:{common:.4,uncommon:.3,rare:.2,mythic:.1}},{type:'guaranteed_foil',count:1,weights:{common:.3,uncommon:.35,rare:.24,mythic:.11}},{type:'art',count:1},{type:'land',count:1}], subsetChance:.04 },
+    'Collector Booster': { slots: [{type:'foil_common',count:4},{type:'foil_uncommon',count:2},{type:'foil_rare_mythic',count:1},{type:'rare_mythic',count:2},{type:'extended_art_rare',count:1},{type:'foil_extended_rare',count:1},{type:'wildcard_premium',count:2,weights:{rare:.6,mythic:.4}},{type:'guaranteed_foil',count:1,weights:{rare:.55,mythic:.45}},{type:'foil_land',count:1}], subsetChance:.06 }
+  };
+
+  function getPackCardCount(bt) { var p=PP[bt]; return p ? p.slots.reduce(function(s,sl){return s+sl.count;},0) : 0; }
+  function byRarity(cards,r) { return cards.filter(function(c){return c.rarity===r;}); }
+  function rPick(a) { return a.length ? a[Math.floor(Math.random()*a.length)] : null; }
+  function wRarity(w) { var roll=Math.random(),c=0; for(var k in w){c+=w[k];if(roll<=c)return k;} return Object.keys(w).pop(); }
+
+  function simPack(bt,setCards,subCards) {
+    subCards=subCards||[]; var pr=PP[bt]; if(!pr)return [];
+    var C=byRarity(setCards,'common'),U=byRarity(setCards,'uncommon'),R=byRarity(setCards,'rare'),M=byRarity(setCards,'mythic'),res=[];
+    pr.slots.forEach(function(slot){
+      for(var i=0;i<slot.count;i++){
+        var card=null,foil=false;
+        if(subCards.length>0&&Math.random()<(pr.subsetChance||0)){var sp=[].concat(byRarity(subCards,'rare'),byRarity(subCards,'mythic'));if(sp.length){card=rPick(sp);foil=slot.type.includes('foil');}}
+        if(!card){
+          switch(slot.type){
+            case'common':card=rPick(C);break;case'uncommon':card=rPick(U);break;
+            case'rare_mythic':card=Math.random()<.875?rPick(R):rPick(M);break;
+            case'wildcard':{var r=wRarity(slot.weights);card=rPick(r==='mythic'?M:r==='rare'?R:r==='uncommon'?U:C);break;}
+            case'guaranteed_foil':{foil=true;var r2=wRarity(slot.weights);card=rPick(r2==='mythic'?M:r2==='rare'?R:r2==='uncommon'?U:C);break;}
+            case'foil_common':foil=true;card=rPick(C);break;case'foil_uncommon':foil=true;card=rPick(U);break;
+            case'foil_rare_mythic':foil=true;card=Math.random()<.875?rPick(R):rPick(M);break;
+            case'extended_art_rare':case'foil_extended_rare':foil=slot.type.includes('foil');card=Math.random()<.8?rPick(R):rPick(M);break;
+            case'wildcard_premium':{var r3=wRarity(slot.weights);card=rPick(r3==='mythic'?M:R);foil=true;break;}
+            case'land':case'foil_land':card=rPick(C)||{name:'Basic Land',rarity:'common',type_line:'Basic Land',prices:{}};foil=slot.type==='foil_land';break;
+            case'art':card={name:'Art Card',rarity:'common',type_line:'Art Card',prices:{}};break;
+            default:card=rPick(C);
+          }
+        }
+        if(card)res.push({card:card,isFoil:foil,slotType:slot.type,price:getCardPrice(card,foil)});
+      }
+    });
+    return res;
+  }
+
+  function getRMDist(bt,setCards) {
+    var pr=PP[bt];if(!pr)return[];var R=byRarity(setCards,'rare'),M=byRarity(setCards,'mythic'),d=[];
+    pr.slots.forEach(function(slot){
+      var rw=0,mw=0;
+      switch(slot.type){
+        case'rare_mythic':case'foil_rare_mythic':rw=.875;mw=.125;break;
+        case'wildcard':case'guaranteed_foil':rw=slot.weights.rare||0;mw=slot.weights.mythic||0;break;
+        case'wildcard_premium':case'extended_art_rare':case'foil_extended_rare':rw=slot.weights?(slot.weights.rare||.8):.8;mw=slot.weights?(slot.weights.mythic||.2):.2;break;
+        default:return;
+      }
+      if(rw+mw===0)return;var f=slot.type.includes('foil');
+      for(var i=0;i<slot.count;i++){R.forEach(function(c){d.push({card:c,probability:rw/R.length,isFoil:f});});M.forEach(function(c){d.push({card:c,probability:mw/M.length,isFoil:f});});}
+    });
+    return d;
+  }
+
+  function extractPT(tl){if(!tl)return null;var i=tl.indexOf('\u2014');if(i===-1)return null;var s=tl.substring(i+1).trim();return s?s.split(/\s+/)[0]:null;}
+  function extractAll(tl){if(!tl)return[];var i=tl.indexOf('\u2014');if(i===-1)return[];var s=tl.substring(i+1).trim();return s?s.split(/\s+/).filter(Boolean):[];}
+  function parseSpotLabel(l){return l.replace(/\s+and\s+/gi,'/').replace(/\s+or\s+/gi,'/').replace(/\s*\/\s*/g,'/').split('/').map(function(s){return s.trim();}).filter(Boolean);}
+
+  function cardMatchesSpot(card,mts){
+    var st=extractAll(card.type_line),pt=extractPT(card.type_line),isCr=(card.type_line||'').toLowerCase().includes('creature');
+    for(var j=0;j<mts.length;j++){var m=mts[j].toLowerCase();if(isCr){if(pt&&pt.toLowerCase()===m)return true;}else{if(st.some(function(s){return s.toLowerCase()===m;}))return true;}if((card.type_line||'').toLowerCase().includes(m))return true;}
+    return false;
+  }
+
+  function sortCards(opened,spots){
+    var bulk=[],assigned=new Map(),last=[];spots.forEach(function(_,i){assigned.set(i,[]);});
+    opened.forEach(function(o){
+      if(o.card.rarity==='common'||o.card.rarity==='uncommon'){bulk.push(o);return;}
+      for(var i=0;i<spots.length;i++){if(cardMatchesSpot(o.card,spots[i].matchTypes)){assigned.get(i).push(o);return;}}
+      last.push(o);
+    });
+    return{bulk:bulk,assigned:assigned,lastSpot:last};
+  }
+
+  function calcEV(roster){var t=0;roster.forEach(function(e){getRMDist(e.boosterType,e.cards).forEach(function(d){t+=getCardPrice(d.card,d.isFoil)*d.probability*e.quantity;});});return t;}
+
+  function simBreak(roster,spots,ins){
+    var all=[];roster.forEach(function(e){for(var i=0;i<e.quantity;i++){all.push.apply(all,simPack(e.boosterType,e.cards,e.subsetCards||[]));}});
+    var s=sortCards(all,spots),res=[];
+    var bv=s.bulk.reduce(function(a,o){return a+o.price;},0);res.push({name:'Bulk (C/U)',cards:s.bulk,rawValue:bv,finalValue:bv,isInsured:false,isBulk:true});
+    for(var i=0;i<spots.length;i++){var sc=s.assigned.get(i)||[],rv=sc.reduce(function(a,o){return a+o.price;},0),ii=rv===0&&ins>0;res.push({name:spots[i].label,cards:sc,rawValue:rv,finalValue:ii?ins:rv,isInsured:ii,isBulk:false});}
+    var lv=s.lastSpot.reduce(function(a,o){return a+o.price;},0),li=lv===0&&ins>0;res.push({name:'Last Spot (Unclaimed R/M)',cards:s.lastSpot,rawValue:lv,finalValue:li?ins:lv,isInsured:li,isBulk:false,isLastSpot:true});
+    var gt=res.reduce(function(a,r){return a+r.finalValue;},0);return{results:res,totalOpenedCards:all.length,grandTotal:gt,perSpot:gt/100};
+  }
+
+  function autoTab(roster,max){
+    max=max||99;var ts=new Map();
+    roster.forEach(function(e){e.cards.filter(function(c){return c.rarity==='rare'||c.rarity==='mythic';}).forEach(function(c){var pt=extractPT(c.type_line);if(!pt)return;if(!ts.has(pt))ts.set(pt,{count:0,totalValue:0});var s=ts.get(pt);s.count++;s.totalValue+=getCardPrice(c);});});
+    return Array.from(ts.entries()).map(function(p){return{name:p[0],count:p[1].count,totalValue:p[1].totalValue,avgValue:p[1].totalValue/p[1].count,score:p[1].totalValue*Math.log2(p[1].count+1)};}).sort(function(a,b){return b.score-a.score;}).slice(0,max);
+  }
+
+  // ── UI ──
+  var state={roster:[],spots:[],mode:'quick',selectedSet:null,setsLoaded:false,nrid:1,nsid:1};
+  function $(id){return document.getElementById(id);}
+  var D={rq:$('roster-qty'),rs:$('roster-set'),rp:$('roster-pack'),ab:$('add-roster-btn'),sg:$('set-suggestions'),tb:$('roster-tbody'),re:$('roster-empty'),tp:$('total-packs'),tc:$('total-cards-est'),qb:$('quick-mode-btn'),mb:$('manual-mode-btn'),qp:$('quick-mode-panel'),mp:$('manual-mode-panel'),at:$('auto-tabulate-btn'),qr:$('quick-results'),sn:$('spot-name'),asb:$('add-spot-btn'),me:$('mass-entry'),pm:$('parse-mass-btn'),sl:$('spots-list'),sc:$('spots-count'),pi:$('pack-insurance'),ce:$('calc-ev-btn'),sb:$('simulate-btn'),gd:$('global-ev-display'),te:$('total-ev'),ps:$('per-spot-ev'),sr:$('sim-results'),sg2:$('sim-spots-grid'),lo:$('loading-overlay'),lt:$('loading-text'),tc2:$('toast-container')};
+
+  function toast(m,t){t=t||'info';var e=document.createElement('div');e.className='toast toast-'+t;e.textContent=m;D.tc2.appendChild(e);setTimeout(function(){e.remove();},4000);}
+  function showL(t){D.lt.textContent=t||'Loading...';D.lo.classList.remove('hidden');}
+  function hideL(){D.lo.classList.add('hidden');}
+  function fmt(v){return '$'+(v||0).toFixed(2);}
+  function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+  function debounce(fn,ms){var t;return function(){clearTimeout(t);t=setTimeout(fn,ms);};}
+  function updBtn(){var h=state.roster.length>0,a=state.roster.every(function(r){return r.status==='cached';});D.at.disabled=!h||!a;D.ce.disabled=!h||!a;D.sb.disabled=!h||!a;}
+
+  // Autocomplete
+  var sVis=false,aIdx=-1,cSug=[],bTmr=null;
+
+  async function showDef(){
+    if(!state.setsLoaded){try{showL('Loading set catalog from Scryfall...');await fetchAllSets();state.setsLoaded=true;hideL();toast('Set catalog loaded','success');}catch(e){hideL();toast('Could not reach Scryfall. Check connection.','error');return;}}
+    try{var r=await getRecentSets(10);renderSug(r);}catch(e){console.error(e);}
+  }
+
+  async function handleInput(){
+    var q=D.rs.value.trim();state.selectedSet=null;D.rp.innerHTML='<option value="">Select a set first</option>';D.rp.disabled=true;D.ab.disabled=true;
+    if(!q){await showDef();return;}
+    try{var r=await searchSets(q);renderSug(r);}catch(e){console.error(e);}
+  }
+
+  var dbInput=debounce(handleInput,150);
+
+  function renderSug(sets){
+    cSug=sets||[];aIdx=-1;D.sg.innerHTML='';
+    if(!sets||!sets.length){D.sg.classList.add('hidden');sVis=false;return;}
+    sets.forEach(function(s){
+      var d=document.createElement('div');d.className='suggestion-item';
+      d.innerHTML='<span>'+esc(s.name)+' <span class="suggestion-code">('+s.code.toLowerCase()+')</span></span>';
+      d.addEventListener('mousedown',function(e){e.preventDefault();selSet(s);});
+      D.sg.appendChild(d);
+    });
+    D.sg.classList.remove('hidden');sVis=true;
+  }
+
+  function selSet(s){
+    state.selectedSet={code:s.code,name:s.name,setInfo:s};
+    D.rs.value=s.name+' ('+s.code.toLowerCase()+')';D.sg.classList.add('hidden');sVis=false;
+    var types=getAvailableBoosterTypes(s);D.rp.innerHTML='';
+    types.forEach(function(t){var o=document.createElement('option');o.value=t;o.textContent=t;D.rp.appendChild(o);});
+    D.rp.disabled=false;D.ab.disabled=false;
+    console.log('[Set]',s.name,'('+s.code+') Boosters:',types.join(', '));
+  }
+
+  D.rs.addEventListener('focus',function(){clearTimeout(bTmr);if(!D.rs.value.trim()||state.selectedSet){showDef();}else if(cSug.length){D.sg.classList.remove('hidden');sVis=true;}else{handleInput();}});
+  D.rs.addEventListener('input',function(){state.selectedSet=null;D.rp.innerHTML='<option value="">Select a set first</option>';D.rp.disabled=true;D.ab.disabled=true;dbInput();});
+  D.rs.addEventListener('blur',function(){bTmr=setTimeout(function(){D.sg.classList.add('hidden');sVis=false;},250);});
+  D.rs.addEventListener('keydown',function(e){
+    if(!sVis||!cSug.length)return;
+    if(e.key==='ArrowDown'){e.preventDefault();aIdx=Math.min(aIdx+1,cSug.length-1);hlSug();}
+    else if(e.key==='ArrowUp'){e.preventDefault();aIdx=Math.max(aIdx-1,-1);hlSug();}
+    else if(e.key==='Enter'){e.preventDefault();if(aIdx>=0&&cSug[aIdx])selSet(cSug[aIdx]);}
+    else if(e.key==='Escape'){D.sg.classList.add('hidden');sVis=false;}
+  });
+  function hlSug(){D.sg.querySelectorAll('.suggestion-item').forEach(function(el,i){if(i===aIdx){el.classList.add('active');el.scrollIntoView({block:'nearest'});}else el.classList.remove('active');});}
+
+  // Roster
+  var SUBS={'mh3':['m3c','spg'],'mkm':['mkc','spg'],'otj':['otp','big','spg'],'woe':['woc','spg'],'lci':['lcc','spg'],'dsk':['dsc','spg'],'blb':['blc','spg'],'fdn':['spg'],'one':['onc'],'mom':['moc'],'bro':['brc'],'dmu':['dmc'],'snc':['ncc'],'neo':['nec'],'vow':['voc'],'mid':['mic'],'afr':['afc'],'stx':['c21'],'khm':['khc'],'znr':['znc'],'iko':['c20'],'tdc':['spg'],'fdm':['spg']};
+
+  D.ab.addEventListener('click',addEntry);
+  async function addEntry(){
+    if(!state.selectedSet){toast('Select a set first','error');return;}
+    var qty=parseInt(D.rq.value)||1,bt=D.rp.value;if(!bt){toast('Select a pack type','error');return;}
+    var code=state.selectedSet.code,name=state.selectedSet.name;
+    var e={id:state.nrid++,setCode:code,setName:name,boosterType:bt,quantity:qty,cards:null,subsetCards:[],status:'loading'};
+    state.roster.push(e);renderRoster();updSum();updBtn();
+    D.rs.value='';D.rp.innerHTML='<option value="">Select a set first</option>';D.rp.disabled=true;D.ab.disabled=true;state.selectedSet=null;
+    try{toast('Fetching '+name+'...','info');var cards=await fetchSetCards(code);e.cards=cards;e.status='cached';
+      var subs=SUBS[code.toLowerCase()]||[];for(var i=0;i<subs.length;i++){try{var sc=await fetchSetCards(subs[i]);e.subsetCards=e.subsetCards.concat(sc);}catch(e2){}}
+      toast('Loaded '+cards.length+' cards from '+name,'success');
+    }catch(err){e.status='error';toast('Failed: '+err.message,'error');}
+    renderRoster();updSum();updBtn();
+  }
+
+  function rmEntry(id){state.roster=state.roster.filter(function(r){return r.id!==id;});renderRoster();updSum();updBtn();}
+  function renderRoster(){
+    D.tb.innerHTML='';D.re.classList.toggle('hidden',state.roster.length>0);
+    state.roster.forEach(function(e){
+      var tr=document.createElement('tr');
+      var sc=e.status==='cached'?'status-cached':e.status==='loading'?'status-loading':'status-error';
+      var st=e.status==='cached'?('\u2713 '+(e.cards?e.cards.length:0)+' cards'):e.status==='loading'?'Fetching...':'Error';
+      var ec=e.status==='cached'?(e.quantity*getPackCardCount(e.boosterType)):'\u2014';
+      tr.innerHTML='<td>'+e.quantity+'</td><td>'+esc(e.setName)+' <span style="color:var(--text-muted)">('+e.setCode+')</span></td><td>'+e.boosterType+'</td><td>'+ec+'</td><td><span class="status-badge '+sc+'">'+st+'</span></td><td><button class="btn btn-sm btn-danger remove-btn">\u2715</button></td>';
+      tr.querySelector('.remove-btn').addEventListener('click',function(){rmEntry(e.id);});D.tb.appendChild(tr);
+    });
+  }
+  function updSum(){var tp=0,tc=0;state.roster.forEach(function(r){tp+=r.quantity;if(r.status==='cached')tc+=r.quantity*getPackCardCount(r.boosterType);});D.tp.textContent='Total Packs: '+tp;D.tc.textContent='Est. Cards: '+tc;}
+
+  // Modes
+  D.qb.addEventListener('click',function(){state.mode='quick';D.qb.classList.add('active');D.mb.classList.remove('active');D.qp.classList.remove('hidden');D.mp.classList.add('hidden');updBtn();});
+  D.mb.addEventListener('click',function(){state.mode='manual';D.mb.classList.add('active');D.qb.classList.remove('active');D.mp.classList.remove('hidden');D.qp.classList.add('hidden');updBtn();});
+
+  // Manual spots
+  D.asb.addEventListener('click',function(){var l=D.sn.value.trim();if(!l)return;addSpot(l);D.sn.value='';});
+  D.sn.addEventListener('keydown',function(e){if(e.key==='Enter')D.asb.click();});
+  D.pm.addEventListener('click',function(){var lines=D.me.value.split('\n').map(function(l){return l.trim();}).filter(Boolean);if(!lines.length)return;lines.forEach(function(l){addSpot(l);});D.me.value='';toast('Added '+lines.length+' spots','success');});
+
+  function addSpot(l){if(state.spots.length>=99){toast('Max 99 spots','error');return;}state.spots.push({id:state.nsid++,label:l,matchTypes:parseSpotLabel(l)});renderSpots();updBtn();}
+  function rmSpot(id){state.spots=state.spots.filter(function(s){return s.id!==id;});renderSpots();updBtn();}
+  function mvSpot(id,dir){var i=state.spots.findIndex(function(s){return s.id===id;});if(i===-1)return;var n=i+dir;if(n<0||n>=state.spots.length)return;var t=state.spots[i];state.spots[i]=state.spots[n];state.spots[n]=t;renderSpots();}
+  function renderSpots(){
+    D.sl.innerHTML='';D.sc.textContent='Spots defined: '+state.spots.length+' / 99';
+    state.spots.forEach(function(sp,i){
+      var d=document.createElement('div');d.className='spot-item';d.setAttribute('draggable','true');d.dataset.id=sp.id;
+      d.innerHTML='<span class="spot-number">#'+(i+1)+'</span><span class="spot-label">'+esc(sp.label)+'</span><span class="spot-ev">\u2014</span><div class="spot-actions"><button class="btn btn-sm move-up">\u2191</button><button class="btn btn-sm move-down">\u2193</button><button class="btn btn-sm btn-danger remove-spot">\u2715</button></div>';
+      d.querySelector('.move-up').addEventListener('click',function(){mvSpot(sp.id,-1);});
+      d.querySelector('.move-down').addEventListener('click',function(){mvSpot(sp.id,1);});
+      d.querySelector('.remove-spot').addEventListener('click',function(){rmSpot(sp.id);});
+      d.addEventListener('dragstart',function(e){e.dataTransfer.setData('text/plain',sp.id);d.style.opacity='0.5';});
+      d.addEventListener('dragend',function(){d.style.opacity='1';});
+      d.addEventListener('dragover',function(e){e.preventDefault();d.classList.add('drag-over');});
+      d.addEventListener('dragleave',function(){d.classList.remove('drag-over');});
+      d.addEventListener('drop',function(e){e.preventDefault();d.classList.remove('drag-over');var did=parseInt(e.dataTransfer.getData('text/plain'));var fi=state.spots.findIndex(function(s){return s.id===did;});var ti=state.spots.findIndex(function(s){return s.id===sp.id;});if(fi!==-1&&ti!==-1&&fi!==ti){var mv=state.spots.splice(fi,1)[0];state.spots.splice(ti,0,mv);renderSpots();}});
+      D.sl.appendChild(d);
+    });
+  }
+
+  // Quick/EV/Sim
+  D.at.addEventListener('click',function(){
+    if(!state.roster.length||!state.roster.every(function(r){return r.status==='cached';}))return;
+    showL('Analyzing...');setTimeout(function(){
+      try{var rd=state.roster.map(function(r){return{setCode:r.setCode,boosterType:r.boosterType,quantity:r.quantity,cards:r.cards,subsetCards:r.subsetCards};});
+        var ranked=autoTab(rd,99);state.spots=ranked.map(function(r){return{id:state.nsid++,label:r.name,matchTypes:[r.name]};});
+        D.qr.classList.remove('hidden');var h='<h4 style="margin-bottom:.5rem">Top '+ranked.length+' Types</h4><div class="spots-list">';
+        ranked.forEach(function(r,i){h+='<div class="spot-item"><span class="spot-number">#'+(i+1)+'</span><span class="spot-label">'+esc(r.name)+'</span><span style="color:var(--text-muted);font-size:.8rem">'+r.count+' cards</span><span class="spot-ev">'+fmt(r.avgValue)+' avg</span></div>';});
+        h+='</div><p style="margin-top:.5rem;color:var(--text-muted);font-size:.8rem">'+ranked.length+' spots. Remaining R/M \u2192 Last Spot. C/U \u2192 Bulk.</p>';D.qr.innerHTML=h;
+        toast('Auto-assigned '+ranked.length+' spots','success');updBtn();
+      }catch(e){toast('Error: '+e.message,'error');}hideL();
+    },50);
+  });
+
+  D.ce.addEventListener('click',function(){if(!state.roster.length)return;showL('Calculating EV...');setTimeout(function(){try{var rd=state.roster.map(function(r){return{setCode:r.setCode,boosterType:r.boosterType,quantity:r.quantity,cards:r.cards,subsetCards:r.subsetCards};});var ev=calcEV(rd);D.te.textContent=fmt(ev);D.ps.textContent=fmt(ev/100);D.gd.classList.remove('hidden');toast('EV calculated','success');}catch(e){toast('Error: '+e.message,'error');}hideL();},50);});
+
+  D.sb.addEventListener('click',function(){if(!state.roster.length)return;if(!state.spots.length&&state.mode==='quick'){D.at.click();setTimeout(doSim,300);return;}doSim();});
+  function doSim(){showL('Simulating...');setTimeout(function(){try{var rd=state.roster.map(function(r){return{setCode:r.setCode,boosterType:r.boosterType,quantity:r.quantity,cards:r.cards,subsetCards:r.subsetCards};});var ins=parseFloat(D.pi.value)||0;var sim=simBreak(rd,state.spots,ins);renderSim(sim);toast(sim.totalOpenedCards+' cards opened!','success');}catch(e){toast('Error: '+e.message,'error');console.error(e);}hideL();},100);}
+
+  function renderSim(sim){
+    D.sr.classList.remove('hidden');D.sg2.innerHTML='';
+    sim.results.slice().sort(function(a,b){if(a.isBulk)return 1;if(b.isBulk)return-1;return b.finalValue-a.finalValue;}).forEach(function(spot){
+      var c=document.createElement('div');c.className='sim-spot-card';
+      var th=spot.cards.filter(function(c){return c.card.rarity==='rare'||c.card.rarity==='mythic';}).sort(function(a,b){return b.price-a.price;}).slice(0,5);
+      var vc=spot.isInsured?'sim-spot-value insured':'sim-spot-value';
+      var h='<div class="sim-spot-header"><span class="sim-spot-name">'+esc(spot.name)+'</span><span class="'+vc+'">'+fmt(spot.finalValue)+(spot.isInsured?' (ins)':'')+'</span></div>';
+      if(th.length){h+='<div class="sim-top-hits">';th.forEach(function(x){var u=(x.card.image_uris&&x.card.image_uris.normal)||(x.card.card_faces&&x.card.card_faces[0]&&x.card.card_faces[0].image_uris&&x.card.card_faces[0].image_uris.normal)||'';if(u)h+='<img class="sim-card-img" src="'+u+'" alt="'+esc(x.card.name)+'" title="'+esc(x.card.name)+' \u2014 '+fmt(x.price)+'" loading="lazy">';});h+='</div>';}
+      h+='<div class="sim-spot-cards">';spot.cards.slice(0,20).forEach(function(x){h+='<span class="sim-card-chip rarity-'+x.card.rarity+'">'+esc(x.card.name)+' <span class="sim-card-price">'+fmt(x.price)+'</span></span>';});if(spot.cards.length>20)h+='<span class="sim-card-chip">+'+(spot.cards.length-20)+' more</span>';h+='</div>';
+      c.innerHTML=h;D.sg2.appendChild(c);
+    });
+    D.te.textContent=fmt(sim.grandTotal);D.ps.textContent=fmt(sim.perSpot);D.gd.classList.remove('hidden');
+  }
+
+  // Init
+  (async function(){
+    console.log('[MTG Break Calc] Init...');
+    try{showL('Loading set catalog from Scryfall...');await fetchAllSets();state.setsLoaded=true;hideL();toast('Set catalog loaded \u2014 click the Set field to start','success');}
+    catch(e){hideL();toast('Failed to load sets. Click Set field to retry.','error');console.error(e);}
+  })();
+
+})();
+</script>
+</body>
+</html>
