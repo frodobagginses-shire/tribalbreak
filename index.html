@@ -52,7 +52,8 @@ a:hover { color: var(--accent-hover); text-decoration: underline; }
 .card-header { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); background: var(--bg-secondary); }
 .card-header h2 { font-size: 1.15rem; font-weight: 600; }
 .card-body { padding: 1.25rem; }
-.help-tip { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: var(--bg-hover); color: var(--text-secondary); font-size: 0.75rem; font-weight: 700; cursor: help; }
+.help-tip { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: var(--bg-hover); color: var(--text-secondary); font-size: 0.75rem; font-weight: 700; cursor: help; transition: all var(--transition); }
+.help-tip:hover { background: var(--accent-bg); color: var(--accent); }
 .btn { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-hover); color: var(--text-primary); font-family: var(--font); font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: all var(--transition); white-space: nowrap; }
 .btn:hover:not(:disabled) { background: #3a424b; border-color: #484f58; }
 .btn:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -155,6 +156,56 @@ label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--text-s
 .spot-item.drag-over { border-color: var(--accent); background: var(--accent-bg); }
 .spot-item.spot-bulk { background: var(--bg-input); border-style: dashed; opacity: 0.7; }
 .spot-item.spot-last { background: var(--warning-bg); border-color: var(--warning); }
+
+/* Expandable type rows */
+.type-row { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 0.25rem; overflow: hidden; }
+.type-row-header { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; cursor: pointer; transition: background var(--transition); user-select: none; }
+.type-row-header:hover { background: rgba(255,255,255,0.03); }
+.type-row-toggle { font-size: 0.7rem; color: var(--text-muted); transition: transform var(--transition); width: 16px; text-align: center; }
+.type-row.expanded .type-row-toggle { transform: rotate(90deg); }
+.type-row-name { flex: 1; font-weight: 500; font-size: 0.875rem; }
+.type-row-count { color: var(--text-muted); font-size: 0.8rem; min-width: 60px; }
+.type-row-ev { color: var(--success); font-weight: 600; font-family: monospace; font-size: 0.875rem; min-width: 70px; text-align: right; }
+.type-row-cards { display: none; padding: 0 0.75rem 0.5rem; }
+.type-row.expanded .type-row-cards { display: block; }
+.card-detail-row { display: flex; align-items: center; gap: 0.5rem; padding: 0.2rem 0; font-size: 0.8rem; border-bottom: 1px solid rgba(48,54,61,0.5); }
+.card-detail-row:last-child { border-bottom: none; }
+.card-detail-name { flex: 1; }
+.card-detail-rarity { font-size: 0.7rem; text-transform: uppercase; min-width: 50px; }
+.card-detail-rarity.r-mythic { color: var(--mythic); }
+.card-detail-rarity.r-rare { color: var(--rare); }
+.card-detail-price { font-family: monospace; color: var(--text-secondary); min-width: 55px; text-align: right; }
+.card-detail-ev { font-family: monospace; color: var(--success); font-weight: 600; min-width: 65px; text-align: right; }
+.type-row-actions { display: flex; gap: 0.25rem; margin-left: 0.5rem; }
+
+/* Card name links in expanded rows */
+.card-name-link { color: inherit; text-decoration: none; border-bottom: 1px dotted var(--text-muted); transition: color var(--transition), border-color var(--transition); }
+.card-name-link:hover { color: var(--accent); border-bottom-color: var(--accent); text-decoration: none; }
+
+/* Category section headers */
+.cat-section { margin-bottom: 0.75rem; }
+.cat-section-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+.cat-section-title { font-size: 1rem; font-weight: 600; }
+.cat-section-badge { font-size: 0.75rem; color: var(--text-muted); background: var(--bg-input); padding: 0.15rem 0.5rem; border-radius: 10px; }
+
+/* Breakout sub-rows */
+.breakout-row { margin-left: 1.5rem; }
+.breakout-row .type-row-header { padding-left: 0.5rem; }
+
+/* Modal */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 3000; display: flex; align-items: center; justify-content: center; }
+.modal-overlay.hidden { display: none; }
+.modal-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); max-width: 640px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 8px 30px rgba(0,0,0,0.5); }
+.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); background: var(--bg-secondary); }
+.modal-header h3 { font-size: 1.1rem; font-weight: 600; }
+.modal-body { padding: 1.25rem; font-size: 0.875rem; line-height: 1.7; color: var(--text-secondary); }
+.modal-body h4 { color: var(--text-primary); font-size: 0.95rem; margin: 1rem 0 0.4rem; }
+.modal-body h4:first-child { margin-top: 0; }
+.modal-body p { margin-bottom: 0.5rem; }
+.modal-body code { background: var(--bg-input); padding: 0.1rem 0.3rem; border-radius: 3px; font-size: 0.8rem; color: var(--accent); }
+.modal-body table { width: 100%; border-collapse: collapse; margin: 0.5rem 0; font-size: 0.8rem; }
+.modal-body th, .modal-body td { padding: 0.35rem 0.5rem; border: 1px solid var(--border); text-align: left; }
+.modal-body th { background: var(--bg-input); color: var(--text-primary); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -214,22 +265,25 @@ label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--text-s
       </div>
       <div class="card-body">
         <div id="quick-mode-panel">
-          <p class="mode-desc">Auto-analyze the Break Roster to find the most valuable tribes and types, then assign the top 100 spots.</p>
+          <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.75rem">
+            <p class="mode-desc" style="margin:0;flex:1">Auto-analyze the Break Roster to find creature tribes and non-creature types with probability-weighted EV per spot.</p>
+            <span class="help-tip" id="methodology-btn" title="How is EV calculated?">?</span>
+          </div>
           <button id="auto-tabulate-btn" class="btn btn-primary" disabled>&#x26A1; Auto-Tabulate Spots</button>
           <div id="quick-results" class="hidden"></div>
         </div>
         <div id="manual-mode-panel" class="hidden">
-          <p class="mode-desc">Define your 100 spots manually. Use AND/OR logic: "Snake/Snail" or "Snake and Snail" claims either subtype.</p>
+          <p class="mode-desc">Define your 100 spots manually. Use tribe names, card types, or color+type combos. AND/OR logic: "Snake/Snail" claims either.</p>
           <div class="manual-controls">
             <div class="input-group">
-              <label for="spot-name">Spot Name / Tribe</label>
-              <input type="text" id="spot-name" placeholder='e.g. "Eldrazi" or "Snake/Snail"'>
+              <label for="spot-name">Spot Name / Tribe or Type</label>
+              <input type="text" id="spot-name" placeholder='e.g. "Eldrazi", "Blue Sorcery", "Equipment"'>
             </div>
             <button id="add-spot-btn" class="btn btn-primary">+ Add Spot</button>
           </div>
           <div class="mass-entry-wrapper">
-            <label for="mass-entry">Mass Entry (one per line)</label>
-            <textarea id="mass-entry" rows="4" placeholder='Eldrazi&#10;Human&#10;Snake/Snail&#10;Saga&#10;Class'></textarea>
+            <label for="mass-entry">Mass Entry (one per line) &mdash; supports tribes, types, and color+type combos</label>
+            <textarea id="mass-entry" rows="5" placeholder='Eldrazi&#10;Human&#10;Snake/Snail&#10;Blue Sorcery&#10;Red Sorcery&#10;Legendary Artifact&#10;Equipment&#10;Aura&#10;Class/Saga/Case'></textarea>
             <button id="parse-mass-btn" class="btn btn-sm">Parse &amp; Add</button>
           </div>
           <div id="spots-list" class="spots-list"></div>
@@ -258,7 +312,7 @@ label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--text-s
             <span id="total-ev" class="ev-value">$0.00</span>
           </div>
           <div class="ev-card highlight">
-            <span class="ev-label">EV Per Spot (÷100)</span>
+            <span class="ev-label">EV Per Spot (&#247;100)</span>
             <span id="per-spot-ev" class="ev-value">$0.00</span>
           </div>
         </div>
@@ -275,6 +329,51 @@ label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--text-s
     <p id="loading-text">Loading...</p>
   </div>
   <div id="toast-container"></div>
+
+  <!-- Card hover preview popup -->
+  <div id="card-preview-popup" style="position:fixed;display:none;z-index:9999;pointer-events:none">
+    <img id="card-preview-img" style="width:210px;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,0.8)" src="" alt="">
+  </div>
+
+  <!-- Methodology Modal -->
+  <div id="methodology-modal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>&#x1F4D6; How EV is Calculated</h3>
+        <button id="close-modal-btn" class="btn btn-sm">&times;</button>
+      </div>
+      <div class="modal-body">
+        <h4>Pack Simulation</h4>
+        <p>Each pack type is modeled with specific slot compositions based on real pack structures:</p>
+        <table>
+          <tr><th>Pack Type</th><th>Key Slots</th></tr>
+          <tr><td>Play Booster</td><td>6 C, 3 U, 1 R/M (7:1), 2 Wildcard, 1 Foil (any rarity), 1 Land (20% foil)</td></tr>
+          <tr><td>Draft Booster</td><td>10 C, 3 U, 1 R/M (7:1), 1 Land (10% foil)</td></tr>
+          <tr><td>Set Booster</td><td>3 C, 3 U, 1 R/M, 2 Wildcard (higher R/M), 1 Foil, 1 Art, 1 Land (15% foil)</td></tr>
+          <tr><td>Collector Booster</td><td>4 Foil C, 2 Foil U, 1 Foil R/M, 2 R/M, 1 Extended Art R/M, 1 Foil Extended R/M, 2 Premium Foil R/M, 1 Premium Foil, 1 Foil Land</td></tr>
+        </table>
+        <p>R/M = 87.5% Rare / 12.5% Mythic. Wildcard slots use weighted distributions (Play Booster: 60% C, 25% U, 10% R, 5% M). Foil cards use foil pricing when available — look for the ✨foil tag in simulation results.</p>
+
+        <h4>Bonus Sheet / Special Subset Cards</h4>
+        <p>Sets with bonus sheets (e.g. OTJ's The Big Score, TMNT's Pizza Sheet) have an approximately <strong>~3.6% per-pack</strong> chance of a bonus sheet card replacing one common slot. The bonus sheet draw is made once per pack and pulls from all rarities (weighted: 45% C, 30% U, 20% R, 5% M). Bonus cards are tagged ★bonus in simulation results.</p>
+
+        <h4>EV Calculation (Expected Value)</h4>
+        <p>For each slot in the pack that can produce Rare/Mythic cards, we calculate:</p>
+        <p><code>Card EV = Card Price &times; P(pulling that card in one slot) &times; Num Packs</code></p>
+        <p>Where <code>P(specific rare) = P(slot hits rare) &divide; (number of rares in set)</code></p>
+        <p>For example, in a Play Booster with 60 rares: the rare/mythic slot gives <code>0.875 / 60 = 1.46%</code> chance per pack. Over 6 packs: <code>$50 rare &times; 0.0875 = $4.38 EV</code>.</p>
+        <p>The "Spot EV" shown is the sum of all EV contributions from cards matching that spot type — how much value you'd <em>expect</em> in that spot across all packs opened.</p>
+
+        <h4>Per-Set Pack Logic</h4>
+        <p><strong>Murders at Karlov Manor (MKM)</strong>: The 10 rare surveil dual lands occupy the Wildcard slot only, not the regular Rare/Mythic slot. Each wildcard slot has an 8.33% chance (~16.67% per pack) of producing a surveil land. This raises EV compared to standard Play Booster logic.</p>
+        <p><strong>Outlaws of Thunder Junction (OTJ)</strong>: The Big Score (30 R/M-only mini-set) can appear in a wildcard slot in ~12.5% of Play Boosters. Breaking News has a separate ~3.6% per-pack bonus sheet chance. Both contributions are modeled separately.</p>
+        <p>All other post-MKM Play Booster sets (MH3, BLB, DSK, FDN, etc.) and LTR (Draft/Set/Collector) use standard slot structures.</p>
+
+        <h4>Important Notes</h4>
+        <p>Prices from TCGplayer Market via Scryfall. Only R/M cards contribute to spot EV (C/U go to Bulk). Set-specific rarities like surge foils, serialized cards, and headliner slots are not separately modeled — these are very low probability events (&lt;1%) that have minimal impact on expected value calculations.</p>
+      </div>
+    </div>
+  </div>
 
   <footer class="app-footer">
     <p>Data powered by <a href="https://scryfall.com" target="_blank" rel="noopener">Scryfall API</a>. Prices from TCGplayer Market.</p>
@@ -360,11 +459,38 @@ label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--text-s
     return t;
   }
 
+  // subsetChance = per-PACK probability of a bonus sheet card (applied once per pack, not per slot).
+  // landFoilChance on land slots = probability that the land comes out foil (~20% in Play Boosters per WotC).
   var PP = {
-    'Play Booster': { slots: [{type:'common',count:6},{type:'uncommon',count:3},{type:'rare_mythic',count:1},{type:'wildcard',count:2,weights:{common:.6,uncommon:.25,rare:.1,mythic:.05}},{type:'guaranteed_foil',count:1,weights:{common:.4,uncommon:.35,rare:.17,mythic:.08}},{type:'land',count:1}], subsetChance:.03 },
-    'Draft Booster': { slots: [{type:'common',count:10},{type:'uncommon',count:3},{type:'rare_mythic',count:1},{type:'land',count:1}], subsetChance:0 },
-    'Set Booster': { slots: [{type:'common',count:3},{type:'uncommon',count:3},{type:'rare_mythic',count:1},{type:'wildcard',count:2,weights:{common:.4,uncommon:.3,rare:.2,mythic:.1}},{type:'guaranteed_foil',count:1,weights:{common:.3,uncommon:.35,rare:.24,mythic:.11}},{type:'art',count:1},{type:'land',count:1}], subsetChance:.04 },
-    'Collector Booster': { slots: [{type:'foil_common',count:4},{type:'foil_uncommon',count:2},{type:'foil_rare_mythic',count:1},{type:'rare_mythic',count:2},{type:'extended_art_rare',count:1},{type:'foil_extended_rare',count:1},{type:'wildcard_premium',count:2,weights:{rare:.6,mythic:.4}},{type:'guaranteed_foil',count:1,weights:{rare:.55,mythic:.45}},{type:'foil_land',count:1}], subsetChance:.06 }
+    'Play Booster': { slots: [{type:'common',count:6},{type:'uncommon',count:3},{type:'rare_mythic',count:1},{type:'wildcard',count:2,weights:{common:.6,uncommon:.25,rare:.1,mythic:.05}},{type:'guaranteed_foil',count:1,weights:{common:.4,uncommon:.35,rare:.17,mythic:.08}},{type:'land',count:1,foilChance:.20}], subsetChance:.036 },
+    'Draft Booster': { slots: [{type:'common',count:10},{type:'uncommon',count:3},{type:'rare_mythic',count:1},{type:'land',count:1,foilChance:.10}], subsetChance:0 },
+    'Set Booster': { slots: [{type:'common',count:3},{type:'uncommon',count:3},{type:'rare_mythic',count:1},{type:'wildcard',count:2,weights:{common:.4,uncommon:.3,rare:.2,mythic:.1}},{type:'guaranteed_foil',count:1,weights:{common:.3,uncommon:.35,rare:.24,mythic:.11}},{type:'art',count:1},{type:'land',count:1,foilChance:.15}], subsetChance:.04 },
+    'Collector Booster': { slots: [{type:'foil_common',count:4},{type:'foil_uncommon',count:2},{type:'foil_rare_mythic',count:1},{type:'rare_mythic',count:2},{type:'extended_art_rare',count:1},{type:'foil_extended_rare',count:1},{type:'wildcard_premium',count:2,weights:{rare:.6,mythic:.4}},{type:'guaranteed_foil',count:1,weights:{rare:.55,mythic:.45}},{type:'foil_land',count:1}], subsetChance:.15 }
+  };
+
+  // Per-set pack logic overrides. Only sets with meaningful slot-level deviations
+  // from standard PP structures are listed here.
+  var SET_CONFIG = {
+    // MKM: 10 rare surveil dual lands occupy the Wildcard slot, NOT the R/M slot.
+    // Per wildcard slot: 8.33% chance of a surveil land; 91.67% → normal wildcard.
+    // ~16.67% of Play Boosters contain a surveil land across both wildcard slots.
+    'mkm': {
+      'Play Booster': {
+        specialLandFilter: function(c) { return c.rarity==='rare' && cardHasMainType(c,'land'); },
+        wildcardSpecialChance: 0.0833
+      }
+    },
+    // OTJ: The Big Score (30 R/M-only mini-set) appears in one wildcard slot in
+    // approximately 1 in 8 Play Boosters (~12.5% per pack). Breaking News bonus
+    // sheet is separate (3.6% per-pack via standard subsetChance mechanism).
+    'otj': {
+      'Play Booster': {
+        wildcardBigScoreChance: 0.125,
+        bigScoreSubsetCode: 'big'
+      }
+    }
+    // BLB, DSK, FDN, MH3: standard Play Booster structure — no overrides needed.
+    // LTR (June 2023): Draft/Set/CB structure handled by date-based detection above.
   };
 
   function getPackCardCount(bt) { var p=PP[bt]; return p ? p.slots.reduce(function(s,sl){return s+sl.count;},0) : 0; }
@@ -372,27 +498,71 @@ label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--text-s
   function rPick(a) { return a.length ? a[Math.floor(Math.random()*a.length)] : null; }
   function wRarity(w) { var roll=Math.random(),c=0; for(var k in w){c+=w[k];if(roll<=c)return k;} return Object.keys(w).pop(); }
 
-  function simPack(bt,setCards,subCards) {
+  function simPack(bt,setCards,subCards,setCode) {
     subCards=subCards||[]; var pr=PP[bt]; if(!pr)return [];
+    var cfg=(SET_CONFIG[setCode||'']||{})[bt]||{};
     var C=byRarity(setCards,'common'),U=byRarity(setCards,'uncommon'),R=byRarity(setCards,'rare'),M=byRarity(setCards,'mythic'),res=[];
+
+    // Per-set: separate special-slot rares (e.g. MKM surveil lands) from normal rare pool.
+    // Affects rare_mythic slot (excludes specials) and wildcard slot (may roll specials).
+    var specialLands=[],normalR=R;
+    if(cfg.specialLandFilter){
+      specialLands=R.filter(cfg.specialLandFilter);
+      normalR=R.filter(function(c){return !cfg.specialLandFilter(c);});
+    }
+
+    // OTJ: identify Big Score cards from subCards for wildcard slot injection.
+    var bigScoreCards=[];
+    if(cfg.wildcardBigScoreChance&&cfg.bigScoreSubsetCode&&subCards.length){
+      bigScoreCards=subCards.filter(function(c){return c.set&&c.set.toLowerCase()===cfg.bigScoreSubsetCode;});
+      // Fallback: any R/M from subCards if set code matching fails
+      if(!bigScoreCards.length) bigScoreCards=subCards.filter(function(c){return c.rarity==='rare'||c.rarity==='mythic';});
+    }
+
+    // Bonus sheet: roll ONCE per pack (not per slot) and insert into first common slot.
+    // Picks from all rarities in the subset pool (not just rare/mythic).
+    var bonusCard=null,bonusUsed=false;
+    if(subCards.length>0&&(pr.subsetChance||0)>0&&Math.random()<pr.subsetChance){
+      var sC=byRarity(subCards,'common'),sU=byRarity(subCards,'uncommon'),sR=byRarity(subCards,'rare'),sM=byRarity(subCards,'mythic');
+      var sr=wRarity({common:.45,uncommon:.30,rare:.20,mythic:.05});
+      bonusCard=rPick(sr==='mythic'?sM:sr==='rare'?sR:sr==='uncommon'?sU:sC)||rPick(subCards);
+    }
+
     pr.slots.forEach(function(slot){
       for(var i=0;i<slot.count;i++){
+        // Insert bonus sheet card replacing first eligible common slot
+        if(bonusCard&&!bonusUsed&&slot.type==='common'){
+          res.push({card:bonusCard,isFoil:false,slotType:'bonus_sheet',price:getCardPrice(bonusCard,false)});
+          bonusUsed=true; continue;
+        }
         var card=null,foil=false;
-        if(subCards.length>0&&Math.random()<(pr.subsetChance||0)){var sp=[].concat(byRarity(subCards,'rare'),byRarity(subCards,'mythic'));if(sp.length){card=rPick(sp);foil=slot.type.includes('foil');}}
-        if(!card){
-          switch(slot.type){
-            case'common':card=rPick(C);break;case'uncommon':card=rPick(U);break;
-            case'rare_mythic':card=Math.random()<.875?rPick(R):rPick(M);break;
-            case'wildcard':{var r=wRarity(slot.weights);card=rPick(r==='mythic'?M:r==='rare'?R:r==='uncommon'?U:C);break;}
-            case'guaranteed_foil':{foil=true;var r2=wRarity(slot.weights);card=rPick(r2==='mythic'?M:r2==='rare'?R:r2==='uncommon'?U:C);break;}
-            case'foil_common':foil=true;card=rPick(C);break;case'foil_uncommon':foil=true;card=rPick(U);break;
-            case'foil_rare_mythic':foil=true;card=Math.random()<.875?rPick(R):rPick(M);break;
-            case'extended_art_rare':case'foil_extended_rare':foil=slot.type.includes('foil');card=Math.random()<.8?rPick(R):rPick(M);break;
-            case'wildcard_premium':{var r3=wRarity(slot.weights);card=rPick(r3==='mythic'?M:R);foil=true;break;}
-            case'land':case'foil_land':card=rPick(C)||{name:'Basic Land',rarity:'common',type_line:'Basic Land',prices:{}};foil=slot.type==='foil_land';break;
-            case'art':card={name:'Art Card',rarity:'common',type_line:'Art Card',prices:{}};break;
-            default:card=rPick(C);
+        switch(slot.type){
+          case'common':card=rPick(C);break;case'uncommon':card=rPick(U);break;
+          // rare_mythic slot: uses normalR (excludes MKM surveil lands which live in wildcard)
+          case'rare_mythic':card=Math.random()<.875?rPick(normalR):rPick(M);break;
+          case'wildcard':{
+            // MKM: 8.33% per wildcard slot → surveil land; otherwise normal wildcard
+            if(cfg.wildcardSpecialChance&&specialLands.length&&Math.random()<cfg.wildcardSpecialChance){
+              card=rPick(specialLands);foil=false;
+            }
+            // OTJ: 12.5% per pack → Big Score R/M card in this wildcard slot
+            else if(cfg.wildcardBigScoreChance&&bigScoreCards.length&&Math.random()<cfg.wildcardBigScoreChance){
+              card=rPick(bigScoreCards);foil=false;
+            }
+            else{var r=wRarity(slot.weights);card=rPick(r==='mythic'?M:r==='rare'?normalR:r==='uncommon'?U:C);}
+            break;
           }
+          case'guaranteed_foil':{foil=true;var r2=wRarity(slot.weights);card=rPick(r2==='mythic'?M:r2==='rare'?R:r2==='uncommon'?U:C);break;}
+          case'foil_common':foil=true;card=rPick(C);break;case'foil_uncommon':foil=true;card=rPick(U);break;
+          case'foil_rare_mythic':foil=true;card=Math.random()<.875?rPick(R):rPick(M);break;
+          case'extended_art_rare':case'foil_extended_rare':foil=slot.type.includes('foil');card=Math.random()<.8?rPick(R):rPick(M);break;
+          case'wildcard_premium':{var r3=wRarity(slot.weights);card=rPick(r3==='mythic'?M:R);foil=true;break;}
+          case'land':case'foil_land':
+            card=rPick(C)||{name:'Basic Land',rarity:'common',type_line:'Basic Land',prices:{}};
+            foil=slot.type==='foil_land'||(!!slot.foilChance&&Math.random()<slot.foilChance);
+            break;
+          case'art':card={name:'Art Card',rarity:'common',type_line:'Art Card',prices:{}};break;
+          default:card=rPick(C);
         }
         if(card)res.push({card:card,isFoil:foil,slotType:slot.type,price:getCardPrice(card,foil)});
       }
@@ -400,8 +570,36 @@ label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--text-s
     return res;
   }
 
-  function getRMDist(bt,setCards) {
-    var pr=PP[bt];if(!pr)return[];var R=byRarity(setCards,'rare'),M=byRarity(setCards,'mythic'),d=[];
+  function getRMDist(bt,setCards,setCode,subCards) {
+    var pr=PP[bt];if(!pr)return[];
+    subCards=subCards||[];
+    var cfg=(SET_CONFIG[setCode||'']||{})[bt]||{};
+    // Deduplicate by card name so alternate-art reprints of the same card
+    // don't each get their own probability slice (which would inflate EV).
+    // Scryfall sorts by price desc, so the first occurrence is the priciest print.
+    var seenR=new Set(),seenM=new Set();
+    var R=byRarity(setCards,'rare').filter(function(c){if(seenR.has(c.name))return false;seenR.add(c.name);return true;});
+    var M=byRarity(setCards,'mythic').filter(function(c){if(seenM.has(c.name))return false;seenM.add(c.name);return true;});
+
+    // Per-set: separate special-slot rares (MKM surveil lands) from normal rare pool
+    var specialLands=[],normalR=R;
+    if(cfg.specialLandFilter){
+      specialLands=R.filter(cfg.specialLandFilter);
+      normalR=R.filter(function(c){return !cfg.specialLandFilter(c);});
+    }
+
+    // OTJ: deduplicated Big Score R/M cards from subCards for wildcard EV contribution
+    var bigScoreCards=[];
+    if(cfg.wildcardBigScoreChance&&cfg.bigScoreSubsetCode&&subCards.length){
+      var seenBS=new Set();
+      var bsRaw=subCards.filter(function(c){return c.set&&c.set.toLowerCase()===cfg.bigScoreSubsetCode;});
+      if(!bsRaw.length) bsRaw=subCards.filter(function(c){return c.rarity==='rare'||c.rarity==='mythic';});
+      bigScoreCards=bsRaw.filter(function(c){
+        if(seenBS.has(c.name))return false; seenBS.add(c.name); return true;
+      }).filter(function(c){return c.rarity==='rare'||c.rarity==='mythic';});
+    }
+
+    var d=[];
     pr.slots.forEach(function(slot){
       var rw=0,mw=0;
       switch(slot.type){
@@ -410,19 +608,147 @@ label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--text-s
         case'wildcard_premium':case'extended_art_rare':case'foil_extended_rare':rw=slot.weights?(slot.weights.rare||.8):.8;mw=slot.weights?(slot.weights.mythic||.2):.2;break;
         default:return;
       }
-      if(rw+mw===0)return;var f=slot.type.includes('foil');
-      for(var i=0;i<slot.count;i++){R.forEach(function(c){d.push({card:c,probability:rw/R.length,isFoil:f});});M.forEach(function(c){d.push({card:c,probability:mw/M.length,isFoil:f});});}
+      if(rw+mw===0)return;
+      // wildcard_premium cards are always foil in Collector Boosters even though
+      // the slot name doesn't contain the word "foil".
+      var f=slot.type.includes('foil')||slot.type==='wildcard_premium';
+
+      if(slot.type==='rare_mythic'||slot.type==='foil_rare_mythic'){
+        // R/M slot: use normalR (excludes MKM surveil lands; identical to R for other sets)
+        var rPool=specialLands.length?normalR:R;
+        if(!rPool.length||!M.length)return;
+        for(var i=0;i<slot.count;i++){
+          rPool.forEach(function(c){d.push({card:c,probability:rw/rPool.length,isFoil:f});});
+          M.forEach(function(c){d.push({card:c,probability:mw/M.length,isFoil:f});});
+        }
+      } else if(slot.type==='wildcard'&&cfg.wildcardSpecialChance&&specialLands.length){
+        // MKM wildcard: 8.33% per slot → surveil land; 91.67% → normal wildcard wRarity
+        var slChance=cfg.wildcardSpecialChance, normChance=1-slChance;
+        for(var i=0;i<slot.count;i++){
+          specialLands.forEach(function(c){d.push({card:c,probability:slChance/specialLands.length,isFoil:false});});
+          if(normalR.length) normalR.forEach(function(c){d.push({card:c,probability:normChance*rw/normalR.length,isFoil:f});});
+          if(M.length) M.forEach(function(c){d.push({card:c,probability:normChance*mw/M.length,isFoil:f});});
+        }
+      } else if(slot.type==='wildcard'&&cfg.wildcardBigScoreChance&&bigScoreCards.length){
+        // OTJ wildcard: 12.5% per pack → Big Score R/M; 87.5% → normal wildcard
+        var bsChance=cfg.wildcardBigScoreChance, normChance2=1-bsChance;
+        var bsR=bigScoreCards.filter(function(c){return c.rarity==='rare';});
+        var bsM=bigScoreCards.filter(function(c){return c.rarity==='mythic';});
+        // Big Score is all R/M — approximate 80/20 split if not otherwise known
+        var bsRw=bsR.length?(bsChance*0.8):0, bsMw=bsM.length?(bsChance*0.2):0;
+        for(var i=0;i<slot.count;i++){
+          if(bsR.length) bsR.forEach(function(c){d.push({card:c,probability:bsRw/bsR.length,isFoil:false});});
+          if(bsM.length) bsM.forEach(function(c){d.push({card:c,probability:bsMw/bsM.length,isFoil:false});});
+          if(R.length) R.forEach(function(c){d.push({card:c,probability:normChance2*rw/R.length,isFoil:f});});
+          if(M.length) M.forEach(function(c){d.push({card:c,probability:normChance2*mw/M.length,isFoil:f});});
+        }
+      } else {
+        // Standard slot handling for all other sets
+        if(!R.length||!M.length)return;
+        for(var i=0;i<slot.count;i++){
+          R.forEach(function(c){d.push({card:c,probability:rw/R.length,isFoil:f});});
+          M.forEach(function(c){d.push({card:c,probability:mw/M.length,isFoil:f});});
+        }
+      }
     });
     return d;
+  }
+
+  function getCardImageUrl(card) {
+    if (!card) return '';
+    if (card.image_uris && card.image_uris.normal) return card.image_uris.normal;
+    // Double-faced cards store image_uris on each face
+    if (card.card_faces && card.card_faces[0] && card.card_faces[0].image_uris) return card.card_faces[0].image_uris.normal;
+    return '';
   }
 
   function extractPT(tl){if(!tl)return null;var i=tl.indexOf('\u2014');if(i===-1)return null;var s=tl.substring(i+1).trim();return s?s.split(/\s+/)[0]:null;}
   function extractAll(tl){if(!tl)return[];var i=tl.indexOf('\u2014');if(i===-1)return[];var s=tl.substring(i+1).trim();return s?s.split(/\s+/).filter(Boolean):[];}
   function parseSpotLabel(l){return l.replace(/\s+and\s+/gi,'/').replace(/\s+or\s+/gi,'/').replace(/\s*\/\s*/g,'/').split('/').map(function(s){return s.trim();}).filter(Boolean);}
 
-  function cardMatchesSpot(card,mts){
-    var st=extractAll(card.type_line),pt=extractPT(card.type_line),isCr=(card.type_line||'').toLowerCase().includes('creature');
-    for(var j=0;j<mts.length;j++){var m=mts[j].toLowerCase();if(isCr){if(pt&&pt.toLowerCase()===m)return true;}else{if(st.some(function(s){return s.toLowerCase()===m;}))return true;}if((card.type_line||'').toLowerCase().includes(m))return true;}
+  // Color helpers
+  var COLOR_MAP = {W:'White',U:'Blue',B:'Black',R:'Red',G:'Green'};
+  var COLOR_NAMES = {white:'W',blue:'U',black:'B',red:'R',green:'G'};
+  function getCardColorKey(card) {
+    var c = card.colors || [];
+    if (c.length === 0) return 'Colorless';
+    if (c.length > 1) return 'Multi';
+    return COLOR_MAP[c[0]] || 'Colorless';
+  }
+  function cardHasMainType(card, typeName) {
+    var tl = (card.type_line || '').toLowerCase();
+    return tl.includes(typeName.toLowerCase());
+  }
+  function cardIsCreature(card) { return cardHasMainType(card, 'creature'); }
+
+  // Compound match parser
+  var NONCREATURE_TYPES = ['sorcery','instant','artifact','enchantment','planeswalker','battle','land'];
+  var SUBTYPES_KNOWN = ['aura','equipment','saga','class','case','vehicle','food','treasure','clue','blood','map','room','curse'];
+  var SUPERTYPES_KNOWN = ['legendary','basic','snow','world'];
+
+  function parseCompoundMatch(label) {
+    var parts = label.toLowerCase().trim().split(/\s+/);
+    var result = {color:null, types:[], subtypes:[], supertypes:[], negate:[], raw:label};
+    var negMatch = label.match(/\(([^)]+)\)/);
+    if (negMatch) {
+      negMatch[1].split('/').forEach(function(n) {
+        var nn = n.replace(/^non-?/i,'').trim().toLowerCase();
+        if (nn) result.negate.push(nn);
+      });
+      var cleaned = label.replace(/\([^)]*\)/g,'').trim().toLowerCase().split(/\s+/);
+      parts = cleaned.filter(Boolean);
+    }
+    parts.forEach(function(p) {
+      var pn = p.replace(/ies$/,'y').replace(/s$/,'');
+      if (COLOR_NAMES[p]) { result.color = COLOR_NAMES[p]; }
+      else if (p === 'multi' || p === 'multicolor' || p === 'multicolored' || p === 'gold') { result.color = 'M'; }
+      else if (p === 'colorless') { result.color = 'C'; }
+      else if (NONCREATURE_TYPES.indexOf(p) !== -1 || NONCREATURE_TYPES.indexOf(pn) !== -1) { result.types.push(NONCREATURE_TYPES.indexOf(p) !== -1 ? p : pn); }
+      else if (SUBTYPES_KNOWN.indexOf(p) !== -1 || SUBTYPES_KNOWN.indexOf(pn) !== -1) { result.subtypes.push(SUBTYPES_KNOWN.indexOf(p) !== -1 ? p : pn); }
+      else if (SUPERTYPES_KNOWN.indexOf(p) !== -1) { result.supertypes.push(p); }
+      else if (p === 'other' || p === 'the' || p === 'rest' || p === 'non-creature' || p === 'not') { /* filler */ }
+      else { result.subtypes.push(p); }
+    });
+    return result;
+  }
+
+  function cardMatchesSpot(card, mts) {
+    var tl = (card.type_line || '').toLowerCase();
+    var st = extractAll(card.type_line);
+    var pt = extractPT(card.type_line);
+    var isCr = tl.includes('creature');
+
+    for (var j = 0; j < mts.length; j++) {
+      var m = mts[j];
+      var cm = parseCompoundMatch(m);
+      var hasStructured = cm.types.length > 0 || cm.supertypes.length > 0 || (cm.color && cm.subtypes.length === 0);
+      if (hasStructured || cm.negate.length > 0) {
+        var match = true;
+        if (cm.types.length > 0) {
+          if (!cm.types.some(function(t) { return tl.includes(t); })) match = false;
+        }
+        if (match && cm.supertypes.length > 0) {
+          if (!cm.supertypes.every(function(s) { return tl.includes(s); })) match = false;
+        }
+        if (match && cm.subtypes.length > 0) {
+          if (!cm.subtypes.some(function(s) { return st.some(function(x) { return x.toLowerCase() === s; }) || tl.includes(s); })) match = false;
+        }
+        if (match && cm.color) {
+          var cc = card.colors || [];
+          if (cm.color === 'M') { if (cc.length < 2) match = false; }
+          else if (cm.color === 'C') { if (cc.length > 0) match = false; }
+          else { if (cc.indexOf(cm.color) === -1 || cc.length > 1) match = false; }
+        }
+        if (match && cm.negate.length > 0) {
+          if (cm.negate.some(function(n) { return tl.includes(n); })) match = false;
+        }
+        if (match) return true;
+      }
+      var ml = m.toLowerCase();
+      if (isCr && pt && pt.toLowerCase() === ml) return true;
+      if (!isCr && st.some(function(s) { return s.toLowerCase() === ml; })) return true;
+      if (tl.includes(ml)) return true;
+    }
     return false;
   }
 
@@ -436,10 +762,10 @@ label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--text-s
     return{bulk:bulk,assigned:assigned,lastSpot:last};
   }
 
-  function calcEV(roster){var t=0;roster.forEach(function(e){getRMDist(e.boosterType,e.cards).forEach(function(d){t+=getCardPrice(d.card,d.isFoil)*d.probability*e.quantity;});});return t;}
+  function calcEV(roster){var t=0;roster.forEach(function(e){getRMDist(e.boosterType,e.cards,e.setCode,e.subsetCards||[]).forEach(function(d){t+=getCardPrice(d.card,d.isFoil)*d.probability*e.quantity;});});return t;}
 
   function simBreak(roster,spots,ins){
-    var all=[];roster.forEach(function(e){for(var i=0;i<e.quantity;i++){all.push.apply(all,simPack(e.boosterType,e.cards,e.subsetCards||[]));}});
+    var all=[];roster.forEach(function(e){for(var i=0;i<e.quantity;i++){all.push.apply(all,simPack(e.boosterType,e.cards,e.subsetCards||[],e.setCode));}});
     var s=sortCards(all,spots),res=[];
     var bv=s.bulk.reduce(function(a,o){return a+o.price;},0);res.push({name:'Bulk (C/U)',cards:s.bulk,rawValue:bv,finalValue:bv,isInsured:false,isBulk:true});
     for(var i=0;i<spots.length;i++){var sc=s.assigned.get(i)||[],rv=sc.reduce(function(a,o){return a+o.price;},0),ii=rv===0&&ins>0;res.push({name:spots[i].label,cards:sc,rawValue:rv,finalValue:ii?ins:rv,isInsured:ii,isBulk:false});}
@@ -447,10 +773,147 @@ label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--text-s
     var gt=res.reduce(function(a,r){return a+r.finalValue;},0);return{results:res,totalOpenedCards:all.length,grandTotal:gt,perSpot:gt/100};
   }
 
-  function autoTab(roster,max){
-    max=max||99;var ts=new Map();
-    roster.forEach(function(e){e.cards.filter(function(c){return c.rarity==='rare'||c.rarity==='mythic';}).forEach(function(c){var pt=extractPT(c.type_line);if(!pt)return;if(!ts.has(pt))ts.set(pt,{count:0,totalValue:0});var s=ts.get(pt);s.count++;s.totalValue+=getCardPrice(c);});});
-    return Array.from(ts.entries()).map(function(p){return{name:p[0],count:p[1].count,totalValue:p[1].totalValue,avgValue:p[1].totalValue/p[1].count,score:p[1].totalValue*Math.log2(p[1].count+1)};}).sort(function(a,b){return b.score-a.score;}).slice(0,max);
+  // Breakout definitions for non-creature types
+  var TYPE_BREAKOUTS = {
+    'Sorcery': { test: function(c) { return cardHasMainType(c,'sorcery') && !cardIsCreature(c); },
+      breakouts: [
+        {label:'White Sorcery', test:function(c){return c.colors&&c.colors.length===1&&c.colors[0]==='W';}},
+        {label:'Blue Sorcery', test:function(c){return c.colors&&c.colors.length===1&&c.colors[0]==='U';}},
+        {label:'Black Sorcery', test:function(c){return c.colors&&c.colors.length===1&&c.colors[0]==='B';}},
+        {label:'Red Sorcery', test:function(c){return c.colors&&c.colors.length===1&&c.colors[0]==='R';}},
+        {label:'Green Sorcery', test:function(c){return c.colors&&c.colors.length===1&&c.colors[0]==='G';}},
+        {label:'Multicolor Sorcery', test:function(c){return c.colors&&c.colors.length>1;}},
+        {label:'Colorless Sorcery', test:function(c){return !c.colors||c.colors.length===0;}}
+      ]},
+    'Instant': { test: function(c) { return cardHasMainType(c,'instant') && !cardIsCreature(c); },
+      breakouts: [
+        {label:'White Instant', test:function(c){return c.colors&&c.colors.length===1&&c.colors[0]==='W';}},
+        {label:'Blue Instant', test:function(c){return c.colors&&c.colors.length===1&&c.colors[0]==='U';}},
+        {label:'Black Instant', test:function(c){return c.colors&&c.colors.length===1&&c.colors[0]==='B';}},
+        {label:'Red Instant', test:function(c){return c.colors&&c.colors.length===1&&c.colors[0]==='R';}},
+        {label:'Green Instant', test:function(c){return c.colors&&c.colors.length===1&&c.colors[0]==='G';}},
+        {label:'Multicolor Instant', test:function(c){return c.colors&&c.colors.length>1;}},
+        {label:'Colorless Instant', test:function(c){return !c.colors||c.colors.length===0;}}
+      ]},
+    'Artifact (non-Creature)': { test: function(c) { return cardHasMainType(c,'artifact') && !cardIsCreature(c); },
+      breakouts: [
+        {label:'Legendary Artifact', test:function(c){return cardHasMainType(c,'legendary');}},
+        {label:'Equipment', test:function(c){return cardHasMainType(c,'equipment');}},
+        {label:'Artifact (non-Creature/non-Equipment/non-Legendary)', test:function(c){return !cardHasMainType(c,'legendary')&&!cardHasMainType(c,'equipment');}}
+      ]},
+    'Enchantment (non-Creature)': { test: function(c) { return cardHasMainType(c,'enchantment') && !cardIsCreature(c); },
+      breakouts: [
+        {label:'Aura', test:function(c){return (c.type_line||'').toLowerCase().includes('aura');}},
+        {label:'Class/Saga/Case', test:function(c){var tl=(c.type_line||'').toLowerCase();return tl.includes('class')||tl.includes('saga')||tl.includes('case');}},
+        {label:'Enchantment (non-Creature/non-Aura/non-Saga/non-Class/non-Case)', test:function(c){var tl=(c.type_line||'').toLowerCase();return !tl.includes('aura')&&!tl.includes('class')&&!tl.includes('saga')&&!tl.includes('case');}}
+      ]},
+    'Planeswalker': { test: function(c) { return cardHasMainType(c,'planeswalker'); },
+      breakouts: [
+        {label:'White Planeswalker', test:function(c){return c.colors&&c.colors.length===1&&c.colors[0]==='W';}},
+        {label:'Blue Planeswalker', test:function(c){return c.colors&&c.colors.length===1&&c.colors[0]==='U';}},
+        {label:'Black Planeswalker', test:function(c){return c.colors&&c.colors.length===1&&c.colors[0]==='B';}},
+        {label:'Red Planeswalker', test:function(c){return c.colors&&c.colors.length===1&&c.colors[0]==='R';}},
+        {label:'Green Planeswalker', test:function(c){return c.colors&&c.colors.length===1&&c.colors[0]==='G';}},
+        {label:'Multicolor Planeswalker', test:function(c){return c.colors&&c.colors.length>1;}},
+        {label:'Colorless Planeswalker', test:function(c){return !c.colors||c.colors.length===0;}}
+      ]},
+    'Battle': { test: function(c) { return cardHasMainType(c,'battle'); },
+      breakouts: [] },
+    'Land (non-Basic)': { test: function(c) { return cardHasMainType(c,'land') && !cardHasMainType(c,'basic'); },
+      breakouts: [] }
+  };
+
+  // ── Probability-weighted EV autoTab ──
+  function autoTab(roster) {
+    // Build per-card EV map using getRMDist (probability-weighted).
+    // Stores both non-foil and foil prices so the expanded view can show both,
+    // and tracks whether any foil slot contributes to this card's EV.
+    var cardEVMap = new Map(); // cardName -> {card, ev, nonFoilPrice, foilPrice, hasFoilSlot}
+    roster.forEach(function(e) {
+      var dist = getRMDist(e.boosterType, e.cards, e.setCode, e.subsetCards||[]);
+      dist.forEach(function(d) {
+        var price = getCardPrice(d.card, d.isFoil);
+        var ev = price * d.probability * e.quantity;
+        var key = d.card.name;
+        if (!cardEVMap.has(key)) {
+          cardEVMap.set(key, {
+            card: d.card, ev: 0,
+            nonFoilPrice: getCardPrice(d.card, false),
+            foilPrice: getCardPrice(d.card, true),
+            hasFoilSlot: false
+          });
+        }
+        var entry = cardEVMap.get(key);
+        entry.ev += ev;
+        if (d.isFoil) entry.hasFoilSlot = true;
+      });
+    });
+
+    // Collect unique R/M cards
+    var seen = new Set();
+    var uniqueRM = [];
+    roster.forEach(function(e) {
+      e.cards.filter(function(c) { return c.rarity === 'rare' || c.rarity === 'mythic'; }).forEach(function(c) {
+        if (!seen.has(c.name)) { seen.add(c.name); uniqueRM.push(c); }
+      });
+    });
+
+    // Helper to get card detail with EV and foil pricing info
+    function cardDetail(c) {
+      var entry = cardEVMap.get(c.name);
+      return {
+        name: c.name, rarity: c.rarity,
+        price: entry ? entry.nonFoilPrice : getCardPrice(c, false),
+        foilPrice: entry ? entry.foilPrice : getCardPrice(c, true),
+        hasFoilSlot: entry ? entry.hasFoilSlot : false,
+        ev: entry ? entry.ev : 0,
+        card: c
+      };
+    }
+
+    // 1) Creature subtypes
+    var creatureTypes = new Map();
+    uniqueRM.forEach(function(c) {
+      if (!cardIsCreature(c)) return;
+      var pt = extractPT(c.type_line);
+      if (!pt) return;
+      if (!creatureTypes.has(pt)) creatureTypes.set(pt, []);
+      creatureTypes.get(pt).push(cardDetail(c));
+    });
+
+    var creatureResults = Array.from(creatureTypes.entries()).map(function(p) {
+      var cards = p[1].sort(function(a,b) { return b.ev - a.ev; });
+      var totalEV = cards.reduce(function(a,c) { return a + c.ev; }, 0);
+      return {name: p[0], count: cards.length, totalEV: totalEV, cards: cards, category: 'Creature'};
+    }).sort(function(a,b) { return b.totalEV - a.totalEV; });
+
+    // 2) Non-creature type categories
+    var typeCategories = [];
+    Object.keys(TYPE_BREAKOUTS).forEach(function(catName) {
+      var catDef = TYPE_BREAKOUTS[catName];
+      var matching = uniqueRM.filter(catDef.test);
+      if (matching.length === 0) return;
+
+      var catCards = matching.map(cardDetail).sort(function(a,b) { return b.ev - a.ev; });
+      var catTotalEV = catCards.reduce(function(a,c) { return a + c.ev; }, 0);
+
+      var breakoutData = [];
+      catDef.breakouts.forEach(function(bo) {
+        var boMatching = matching.filter(bo.test);
+        if (boMatching.length === 0) return;
+        var boCards = boMatching.map(cardDetail).sort(function(a,b) { return b.ev - a.ev; });
+        var boEV = boCards.reduce(function(a,c) { return a + c.ev; }, 0);
+        breakoutData.push({label: bo.label, count: boCards.length, totalEV: boEV, cards: boCards});
+      });
+
+      typeCategories.push({
+        name: catName, count: matching.length, totalEV: catTotalEV,
+        cards: catCards, category: 'Type', breakouts: breakoutData
+      });
+    });
+
+    typeCategories.sort(function(a,b) { return b.totalEV - a.totalEV; });
+    return {creatures: creatureResults, types: typeCategories};
   }
 
   // ── UI ──
@@ -465,6 +928,11 @@ label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--text-s
   function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML;}
   function debounce(fn,ms){var t;return function(){clearTimeout(t);t=setTimeout(fn,ms);};}
   function updBtn(){var h=state.roster.length>0,a=state.roster.every(function(r){return r.status==='cached';});D.at.disabled=!h||!a;D.ce.disabled=!h||!a;D.sb.disabled=!h||!a;}
+
+  // Methodology modal
+  $('methodology-btn').addEventListener('click', function() { $('methodology-modal').classList.remove('hidden'); });
+  $('close-modal-btn').addEventListener('click', function() { $('methodology-modal').classList.add('hidden'); });
+  $('methodology-modal').addEventListener('click', function(e) { if (e.target === $('methodology-modal')) $('methodology-modal').classList.add('hidden'); });
 
   // Autocomplete
   var sVis=false,aIdx=-1,cSug=[],bTmr=null;
@@ -523,6 +991,17 @@ label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--text-s
     if(!state.selectedSet){toast('Select a set first','error');return;}
     var qty=parseInt(D.rq.value)||1,bt=D.rp.value;if(!bt){toast('Select a pack type','error');return;}
     var code=state.selectedSet.code,name=state.selectedSet.name;
+
+    // Bug fix #3: Combine duplicate set+pack entries
+    var existing = state.roster.find(function(r) { return r.setCode === code && r.boosterType === bt && r.status !== 'error'; });
+    if (existing) {
+      existing.quantity += qty;
+      renderRoster(); updSum(); updBtn();
+      D.rs.value='';D.rp.innerHTML='<option value="">Select a set first</option>';D.rp.disabled=true;D.ab.disabled=true;state.selectedSet=null;
+      toast('Updated ' + name + ' to ' + existing.quantity + ' packs', 'success');
+      return;
+    }
+
     var e={id:state.nrid++,setCode:code,setName:name,boosterType:bt,quantity:qty,cards:null,subsetCards:[],status:'loading'};
     state.roster.push(e);renderRoster();updSum();updBtn();
     D.rs.value='';D.rp.innerHTML='<option value="">Select a set first</option>';D.rp.disabled=true;D.ab.disabled=true;state.selectedSet=null;
@@ -576,17 +1055,147 @@ label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--text-s
     });
   }
 
+  // ── Render expandable type row ──
+  function renderTypeRow(item, container, options) {
+    options = options || {};
+    var label = item.name || item.label || '(unknown)';
+    var count = item.count || 0;
+    var ev = item.totalEV || 0;
+
+    var row = document.createElement('div');
+    row.className = 'type-row' + (options.isBreakout ? ' breakout-row' : '');
+
+    var header = document.createElement('div');
+    header.className = 'type-row-header';
+    header.innerHTML = '<span class="type-row-toggle">&#9654;</span>' +
+      '<span class="type-row-name" style="color:#e6edf3">' + esc(label) + '</span>' +
+      '<span class="type-row-count" style="color:#8b949e">' + count + ' card' + (count !== 1 ? 's' : '') + '</span>' +
+      '<span class="type-row-ev" style="color:#3fb950">' + fmt(ev) + ' EV</span>';
+
+    if (options.showAddBtn) {
+      var addBtn = document.createElement('button');
+      addBtn.className = 'btn btn-sm btn-primary';
+      addBtn.textContent = '+ Spot';
+      addBtn.title = 'Add as spot';
+      addBtn.style.marginLeft = '0.5rem';
+      addBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var lbl = item.name || item.label;
+        if (state.spots.length >= 99) { toast('Max 99 spots reached','error'); return; }
+        if (state.spots.some(function(s) { return s.label === lbl; })) { toast(lbl + ' already added','info'); return; }
+        state.spots.push({id: state.nsid++, label: lbl, matchTypes: parseSpotLabel(lbl)});
+        addBtn.disabled = true; addBtn.style.opacity = '0.4';
+        toast('Added: ' + lbl, 'success');
+        updBtn();
+      });
+      header.appendChild(addBtn);
+    }
+
+    header.addEventListener('click', function() { row.classList.toggle('expanded'); });
+
+    var cardsDiv = document.createElement('div');
+    cardsDiv.className = 'type-row-cards';
+    var cardHtml = '<div style="display:flex;gap:0.5rem;padding:0.25rem 0;font-size:0.7rem;color:var(--text-muted);border-bottom:1px solid var(--border)">' +
+      '<span style="flex:1">Card Name</span><span style="min-width:50px">Rarity</span><span style="min-width:90px;text-align:right">Price</span><span style="min-width:65px;text-align:right">Spot EV</span></div>';
+    (item.cards || []).forEach(function(c) {
+      var rc = c.rarity === 'mythic' ? 'r-mythic' : 'r-rare';
+      // Show foil price alongside regular price when the card has foil slot contributions.
+      // Format: "$50.00 / ✨$55.00" when foil price differs, or just ✨ marker when same.
+      var hasFoil = c.hasFoilSlot && c.foilPrice > 0;
+      var foilDiffers = hasFoil && Math.abs(c.foilPrice - c.price) > 0.005;
+      var priceHtml = fmt(c.price);
+      if (hasFoil) {
+        priceHtml += foilDiffers
+          ? '<span style="color:#f0c040;font-size:0.7em"> /&nbsp;\u2728' + fmt(c.foilPrice) + '</span>'
+          : '<span style="color:#f0c040;font-size:0.7em">&nbsp;\u2728</span>';
+      }
+      // Card name: Scryfall link + hover image via data-img attribute
+      var imgUrl = getCardImageUrl(c.card);
+      var sfUrl = (c.card && c.card.scryfall_uri) ? c.card.scryfall_uri : 'https://scryfall.com/search?q=!' + encodeURIComponent('"' + c.name + '"');
+      var imgAttr = imgUrl ? ' data-img="' + imgUrl + '"' : '';
+      var nameHtml = '<a href="' + sfUrl + '" target="_blank" rel="noopener" class="card-name-link"' + imgAttr + '>' + esc(c.name) + '</a>';
+      cardHtml += '<div class="card-detail-row">' +
+        '<span class="card-detail-name">' + nameHtml + '</span>' +
+        '<span class="card-detail-rarity ' + rc + '">' + c.rarity + '</span>' +
+        '<span class="card-detail-price">' + priceHtml + '</span>' +
+        '<span class="card-detail-ev">' + fmt(c.ev) + '</span></div>';
+    });
+    cardsDiv.innerHTML = cardHtml;
+
+    row.appendChild(header);
+    row.appendChild(cardsDiv);
+    container.appendChild(row);
+  }
+
   // Quick/EV/Sim
   D.at.addEventListener('click',function(){
     if(!state.roster.length||!state.roster.every(function(r){return r.status==='cached';}))return;
-    showL('Analyzing...');setTimeout(function(){
-      try{var rd=state.roster.map(function(r){return{setCode:r.setCode,boosterType:r.boosterType,quantity:r.quantity,cards:r.cards,subsetCards:r.subsetCards};});
-        var ranked=autoTab(rd,99);state.spots=ranked.map(function(r){return{id:state.nsid++,label:r.name,matchTypes:[r.name]};});
-        D.qr.classList.remove('hidden');var h='<h4 style="margin-bottom:.5rem">Top '+ranked.length+' Types</h4><div class="spots-list">';
-        ranked.forEach(function(r,i){h+='<div class="spot-item"><span class="spot-number">#'+(i+1)+'</span><span class="spot-label">'+esc(r.name)+'</span><span style="color:var(--text-muted);font-size:.8rem">'+r.count+' cards</span><span class="spot-ev">'+fmt(r.avgValue)+' avg</span></div>';});
-        h+='</div><p style="margin-top:.5rem;color:var(--text-muted);font-size:.8rem">'+ranked.length+' spots. Remaining R/M \u2192 Last Spot. C/U \u2192 Bulk.</p>';D.qr.innerHTML=h;
-        toast('Auto-assigned '+ranked.length+' spots','success');updBtn();
-      }catch(e){toast('Error: '+e.message,'error');}hideL();
+    showL('Analyzing tribes & types...');setTimeout(function(){
+      try{
+        var rd = state.roster.map(function(r){return{setCode:r.setCode,boosterType:r.boosterType,quantity:r.quantity,cards:r.cards,subsetCards:r.subsetCards};});
+        var result = autoTab(rd);
+
+        // Auto-assign creature spots
+        state.spots = result.creatures.slice(0,99).map(function(r){return{id:state.nsid++,label:r.name,matchTypes:[r.name]};});
+
+        D.qr.classList.remove('hidden');
+        D.qr.innerHTML = '';
+
+        // ── Creature Types Section ──
+        if (result.creatures.length > 0) {
+          var crSec = document.createElement('div');
+          crSec.className = 'cat-section';
+          crSec.innerHTML = '<div class="cat-section-header"><span class="cat-section-title">Creature Types</span><span class="cat-section-badge">' + result.creatures.length + ' found &bull; auto-assigned as spots</span></div>';
+          // FIX: overflow-y and flex MUST be on separate elements.
+          // Putting both on the same div causes a Safari/Chrome bug where
+          // flex children collapse to zero height.
+          var crScroll = document.createElement('div');
+          crScroll.style.cssText = 'max-height:420px;overflow-y:auto';
+          var crList = document.createElement('div');
+          crList.style.cssText = 'display:flex;flex-direction:column;gap:0.25rem';
+          result.creatures.forEach(function(cr) { renderTypeRow(cr, crList, {showAddBtn: false}); });
+          crScroll.appendChild(crList);
+          crSec.appendChild(crScroll);
+          D.qr.appendChild(crSec);
+        } else {
+          var noCreatures = document.createElement('p');
+          noCreatures.style.cssText = 'color:var(--warning);padding:0.5rem';
+          noCreatures.textContent = 'No creature types found in rare/mythic cards.';
+          D.qr.appendChild(noCreatures);
+        }
+
+        // ── Non-Creature Types Section ──
+        if (result.types.length > 0) {
+          var ncSec = document.createElement('div');
+          ncSec.className = 'cat-section';
+          ncSec.style.marginTop = '1rem';
+          ncSec.innerHTML = '<div class="cat-section-header"><span class="cat-section-title">Non-Creature Types</span><span class="cat-section-badge">click + Spot to add breakouts</span></div>';
+          var ncList = document.createElement('div');
+          ncList.style.cssText = 'display:flex;flex-direction:column;gap:0.25rem';
+
+          result.types.forEach(function(cat) {
+            renderTypeRow(cat, ncList, {showAddBtn: true});
+            if (cat.breakouts && cat.breakouts.length > 0) {
+              cat.breakouts.forEach(function(bo) {
+                renderTypeRow(bo, ncList, {isBreakout: true, showAddBtn: true});
+              });
+            }
+          });
+
+          ncSec.appendChild(ncList);
+          D.qr.appendChild(ncSec);
+        }
+
+        // Summary
+        var sumP = document.createElement('p');
+        sumP.style.cssText = 'margin-top:0.75rem;color:var(--text-muted);font-size:0.8rem';
+        sumP.textContent = state.spots.length + ' creature spots auto-assigned. Click + Spot on non-creature breakouts to add more. Remaining R/M \u2192 Last Spot. C/U \u2192 Bulk.';
+        D.qr.appendChild(sumP);
+
+        toast('Found ' + result.creatures.length + ' creature types + ' + result.types.length + ' non-creature categories', 'success');
+        updBtn();
+      } catch(e) { toast('Error: '+e.message,'error'); console.error(e); }
+      hideL();
     },50);
   });
 
@@ -602,12 +1211,47 @@ label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--text-s
       var th=spot.cards.filter(function(c){return c.card.rarity==='rare'||c.card.rarity==='mythic';}).sort(function(a,b){return b.price-a.price;}).slice(0,5);
       var vc=spot.isInsured?'sim-spot-value insured':'sim-spot-value';
       var h='<div class="sim-spot-header"><span class="sim-spot-name">'+esc(spot.name)+'</span><span class="'+vc+'">'+fmt(spot.finalValue)+(spot.isInsured?' (ins)':'')+'</span></div>';
-      if(th.length){h+='<div class="sim-top-hits">';th.forEach(function(x){var u=(x.card.image_uris&&x.card.image_uris.normal)||(x.card.card_faces&&x.card.card_faces[0]&&x.card.card_faces[0].image_uris&&x.card.card_faces[0].image_uris.normal)||'';if(u)h+='<img class="sim-card-img" src="'+u+'" alt="'+esc(x.card.name)+'" title="'+esc(x.card.name)+' \u2014 '+fmt(x.price)+'" loading="lazy">';});h+='</div>';}
-      h+='<div class="sim-spot-cards">';spot.cards.slice(0,20).forEach(function(x){h+='<span class="sim-card-chip rarity-'+x.card.rarity+'">'+esc(x.card.name)+' <span class="sim-card-price">'+fmt(x.price)+'</span></span>';});if(spot.cards.length>20)h+='<span class="sim-card-chip">+'+(spot.cards.length-20)+' more</span>';h+='</div>';
+      if(th.length){h+='<div class="sim-top-hits">';th.forEach(function(x){var u=(x.card.image_uris&&x.card.image_uris.normal)||(x.card.card_faces&&x.card.card_faces[0]&&x.card.card_faces[0].image_uris&&x.card.card_faces[0].image_uris.normal)||'';var tip=esc(x.card.name)+(x.isFoil?' \u2728Foil':'')+' \u2014 '+fmt(x.price);if(u)h+='<img class="sim-card-img" src="'+u+'" alt="'+esc(x.card.name)+'" title="'+tip+'" loading="lazy">';});h+='</div>';}
+      h+='<div class="sim-spot-cards">';spot.cards.slice(0,20).forEach(function(x){var fTag=x.isFoil?'<span style="color:#f0c040;font-size:0.65em;margin-left:3px">\u2728foil</span>':'';var bTag=x.slotType==='bonus_sheet'?'<span style="color:#a371f7;font-size:0.65em;margin-left:3px">\u2605bonus</span>':'';h+='<span class="sim-card-chip rarity-'+x.card.rarity+'">'+esc(x.card.name)+fTag+bTag+' <span class="sim-card-price">'+fmt(x.price)+'</span></span>';});if(spot.cards.length>20)h+='<span class="sim-card-chip">+'+(spot.cards.length-20)+' more</span>';h+='</div>';
       c.innerHTML=h;D.sg2.appendChild(c);
     });
     D.te.textContent=fmt(sim.grandTotal);D.ps.textContent=fmt(sim.perSpot);D.gd.classList.remove('hidden');
   }
+
+  // ── Card hover preview ──
+  (function() {
+    var popup = document.getElementById('card-preview-popup');
+    var previewImg = document.getElementById('card-preview-img');
+    var activeLink = null;
+
+    document.addEventListener('mouseover', function(e) {
+      var link = e.target.closest ? e.target.closest('.card-name-link') : null;
+      if (link && link.dataset.img) {
+        activeLink = link;
+        previewImg.src = link.dataset.img;
+        popup.style.display = 'block';
+      }
+    });
+
+    document.addEventListener('mouseout', function(e) {
+      var link = e.target.closest ? e.target.closest('.card-name-link') : null;
+      if (link && link === activeLink) {
+        popup.style.display = 'none';
+        activeLink = null;
+      }
+    });
+
+    document.addEventListener('mousemove', function(e) {
+      if (popup.style.display === 'none') return;
+      var x = e.clientX + 18, y = e.clientY - 60;
+      // Keep popup within viewport
+      if (x + 220 > window.innerWidth)  x = e.clientX - 228;
+      if (y + 300 > window.innerHeight) y = window.innerHeight - 308;
+      if (y < 8) y = 8;
+      popup.style.left = x + 'px';
+      popup.style.top  = y + 'px';
+    });
+  })();
 
   // Init
   (async function(){
