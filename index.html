@@ -174,7 +174,9 @@ label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--text-s
 .card-detail-rarity { font-size: 0.7rem; text-transform: uppercase; min-width: 50px; }
 .card-detail-rarity.r-mythic { color: var(--mythic); }
 .card-detail-rarity.r-rare { color: var(--rare); }
-.card-detail-price { font-family: monospace; color: var(--text-secondary); min-width: 55px; text-align: right; }
+.card-detail-price { font-family: monospace; color: var(--text-secondary); min-width: 110px; text-align: right; }
+.card-print-price { cursor: pointer; border-bottom: 1px dotted transparent; transition: color 0.2s ease, border-color 0.2s ease; }
+.card-print-price:hover { color: var(--accent); border-bottom-color: var(--accent); }
 .card-detail-ev { font-family: monospace; color: var(--success); font-weight: 600; min-width: 65px; text-align: right; }
 .type-row-actions { display: flex; gap: 0.25rem; margin-left: 0.5rem; }
 
@@ -220,7 +222,7 @@ label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--text-s
     <section id="roster-section" class="card">
       <div class="card-header">
         <h2>&#x1F4E6; Break Roster</h2>
-        <span class="help-tip" title="Add sets and pack types to build your break pool. Data is fetched from Scryfall when you add a row.">?</span>
+        <span class="help-tip" id="roster-help-tip" title="Add sets and pack types to build your break pool. Data is fetched from Scryfall when you add a row.">?</span>
       </div>
       <div class="card-body">
         <div class="roster-input-row">
@@ -501,26 +503,30 @@ label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--text-s
   function simPack(bt,setCards,subCards,setCode) {
     subCards=subCards||[]; var pr=PP[bt]; if(!pr)return [];
     var cfg=(SET_CONFIG[setCode||'']||{})[bt]||{};
-    var C=byRarity(setCards,'common'),U=byRarity(setCards,'uncommon'),R=byRarity(setCards,'rare'),M=byRarity(setCards,'mythic'),res=[];
+    var C=byRarity(setCards,'common'),U=byRarity(setCards,'uncommon'),res=[];
 
-    // Per-set: separate special-slot rares (e.g. MKM surveil lands) from normal rare pool.
-    // Affects rare_mythic slot (excludes specials) and wildcard slot (may roll specials).
+    // Deduplicate R/M by name — each unique card gets equal probability.
+    // Base printing (lowest collector #) used for standard slots.
+    // Premium printing (highest price) used for CB premium/extended slots.
+    var pools=buildCardPools(buildPrintingsMap(setCards));
+    var R=pools.R, M=pools.M, premCards=pools.premCards;
+    function premPick(c){return c?(premCards.get(c.name)||c):null;}
+
+    // Per-set overrides
     var specialLands=[],normalR=R;
     if(cfg.specialLandFilter){
       specialLands=R.filter(cfg.specialLandFilter);
       normalR=R.filter(function(c){return !cfg.specialLandFilter(c);});
     }
 
-    // OTJ: identify Big Score cards from subCards for wildcard slot injection.
+    // OTJ: Big Score cards from subCards for wildcard slot injection
     var bigScoreCards=[];
     if(cfg.wildcardBigScoreChance&&cfg.bigScoreSubsetCode&&subCards.length){
       bigScoreCards=subCards.filter(function(c){return c.set&&c.set.toLowerCase()===cfg.bigScoreSubsetCode;});
-      // Fallback: any R/M from subCards if set code matching fails
       if(!bigScoreCards.length) bigScoreCards=subCards.filter(function(c){return c.rarity==='rare'||c.rarity==='mythic';});
     }
 
-    // Bonus sheet: roll ONCE per pack (not per slot) and insert into first common slot.
-    // Picks from all rarities in the subset pool (not just rare/mythic).
+    // Bonus sheet: roll ONCE per pack, insert into first common slot
     var bonusCard=null,bonusUsed=false;
     if(subCards.length>0&&(pr.subsetChance||0)>0&&Math.random()<pr.subsetChance){
       var sC=byRarity(subCards,'common'),sU=byRarity(subCards,'uncommon'),sR=byRarity(subCards,'rare'),sM=byRarity(subCards,'mythic');
@@ -530,7 +536,6 @@ label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--text-s
 
     pr.slots.forEach(function(slot){
       for(var i=0;i<slot.count;i++){
-        // Insert bonus sheet card replacing first eligible common slot
         if(bonusCard&&!bonusUsed&&slot.type==='common'){
           res.push({card:bonusCard,isFoil:false,slotType:'bonus_sheet',price:getCardPrice(bonusCard,false)});
           bonusUsed=true; continue;
@@ -538,14 +543,11 @@ label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--text-s
         var card=null,foil=false;
         switch(slot.type){
           case'common':card=rPick(C);break;case'uncommon':card=rPick(U);break;
-          // rare_mythic slot: uses normalR (excludes MKM surveil lands which live in wildcard)
           case'rare_mythic':card=Math.random()<.875?rPick(normalR):rPick(M);break;
           case'wildcard':{
-            // MKM: 8.33% per wildcard slot → surveil land; otherwise normal wildcard
             if(cfg.wildcardSpecialChance&&specialLands.length&&Math.random()<cfg.wildcardSpecialChance){
               card=rPick(specialLands);foil=false;
             }
-            // OTJ: 12.5% per pack → Big Score R/M card in this wildcard slot
             else if(cfg.wildcardBigScoreChance&&bigScoreCards.length&&Math.random()<cfg.wildcardBigScoreChance){
               card=rPick(bigScoreCards);foil=false;
             }
@@ -555,8 +557,11 @@ label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--text-s
           case'guaranteed_foil':{foil=true;var r2=wRarity(slot.weights);card=rPick(r2==='mythic'?M:r2==='rare'?R:r2==='uncommon'?U:C);break;}
           case'foil_common':foil=true;card=rPick(C);break;case'foil_uncommon':foil=true;card=rPick(U);break;
           case'foil_rare_mythic':foil=true;card=Math.random()<.875?rPick(R):rPick(M);break;
-          case'extended_art_rare':case'foil_extended_rare':foil=slot.type.includes('foil');card=Math.random()<.8?rPick(R):rPick(M);break;
-          case'wildcard_premium':{var r3=wRarity(slot.weights);card=rPick(r3==='mythic'?M:R);foil=true;break;}
+          // CB premium slots: use premium printing (showcase/extended art) for pricing
+          case'extended_art_rare':case'foil_extended_rare':{
+            foil=slot.type.includes('foil');
+            var ep=Math.random()<.8?rPick(R):rPick(M);card=premPick(ep);break;}
+          case'wildcard_premium':{var r3=wRarity(slot.weights);var wp=rPick(r3==='mythic'?M:R);card=premPick(wp);foil=true;break;}
           case'land':case'foil_land':
             card=rPick(C)||{name:'Basic Land',rarity:'common',type_line:'Basic Land',prices:{}};
             foil=slot.type==='foil_land'||(!!slot.foilChance&&Math.random()<slot.foilChance);
@@ -574,21 +579,19 @@ label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--text-s
     var pr=PP[bt];if(!pr)return[];
     subCards=subCards||[];
     var cfg=(SET_CONFIG[setCode||'']||{})[bt]||{};
-    // Deduplicate by card name so alternate-art reprints of the same card
-    // don't each get their own probability slice (which would inflate EV).
-    // Scryfall sorts by price desc, so the first occurrence is the priciest print.
-    var seenR=new Set(),seenM=new Set();
-    var R=byRarity(setCards,'rare').filter(function(c){if(seenR.has(c.name))return false;seenR.add(c.name);return true;});
-    var M=byRarity(setCards,'mythic').filter(function(c){if(seenM.has(c.name))return false;seenM.add(c.name);return true;});
+    // Deduplicate R/M by name. Base printing (lowest collector #) used for standard slots.
+    // Premium printing (highest price) used for CB premium/extended slots.
+    var pools=buildCardPools(buildPrintingsMap(setCards));
+    var R=pools.R, M=pools.M, premCards=pools.premCards;
 
-    // Per-set: separate special-slot rares (MKM surveil lands) from normal rare pool
+    // Per-set overrides
     var specialLands=[],normalR=R;
     if(cfg.specialLandFilter){
       specialLands=R.filter(cfg.specialLandFilter);
       normalR=R.filter(function(c){return !cfg.specialLandFilter(c);});
     }
 
-    // OTJ: deduplicated Big Score R/M cards from subCards for wildcard EV contribution
+    // OTJ Big Score
     var bigScoreCards=[];
     if(cfg.wildcardBigScoreChance&&cfg.bigScoreSubsetCode&&subCards.length){
       var seenBS=new Set();
@@ -609,45 +612,41 @@ label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--text-s
         default:return;
       }
       if(rw+mw===0)return;
-      // wildcard_premium cards are always foil in Collector Boosters even though
-      // the slot name doesn't contain the word "foil".
       var f=slot.type.includes('foil')||slot.type==='wildcard_premium';
+      // CB premium/extended slots use the premium printing for pricing
+      var isPrem=slot.type==='extended_art_rare'||slot.type==='foil_extended_rare'||slot.type==='wildcard_premium';
+      function sc(c){return isPrem&&premCards.has(c.name)?premCards.get(c.name):c;}
 
       if(slot.type==='rare_mythic'||slot.type==='foil_rare_mythic'){
-        // R/M slot: use normalR (excludes MKM surveil lands; identical to R for other sets)
         var rPool=specialLands.length?normalR:R;
-        if(!rPool.length||!M.length)return;
+        if(!rPool.length&&!M.length)return;
         for(var i=0;i<slot.count;i++){
-          rPool.forEach(function(c){d.push({card:c,probability:rw/rPool.length,isFoil:f});});
-          M.forEach(function(c){d.push({card:c,probability:mw/M.length,isFoil:f});});
+          rPool.forEach(function(c){d.push({card:sc(c),probability:rw/rPool.length,isFoil:f});});
+          M.forEach(function(c){d.push({card:sc(c),probability:mw/M.length,isFoil:f});});
         }
       } else if(slot.type==='wildcard'&&cfg.wildcardSpecialChance&&specialLands.length){
-        // MKM wildcard: 8.33% per slot → surveil land; 91.67% → normal wildcard wRarity
         var slChance=cfg.wildcardSpecialChance, normChance=1-slChance;
         for(var i=0;i<slot.count;i++){
           specialLands.forEach(function(c){d.push({card:c,probability:slChance/specialLands.length,isFoil:false});});
-          if(normalR.length) normalR.forEach(function(c){d.push({card:c,probability:normChance*rw/normalR.length,isFoil:f});});
-          if(M.length) M.forEach(function(c){d.push({card:c,probability:normChance*mw/M.length,isFoil:f});});
+          if(normalR.length) normalR.forEach(function(c){d.push({card:sc(c),probability:normChance*rw/normalR.length,isFoil:f});});
+          if(M.length) M.forEach(function(c){d.push({card:sc(c),probability:normChance*mw/M.length,isFoil:f});});
         }
       } else if(slot.type==='wildcard'&&cfg.wildcardBigScoreChance&&bigScoreCards.length){
-        // OTJ wildcard: 12.5% per pack → Big Score R/M; 87.5% → normal wildcard
         var bsChance=cfg.wildcardBigScoreChance, normChance2=1-bsChance;
         var bsR=bigScoreCards.filter(function(c){return c.rarity==='rare';});
         var bsM=bigScoreCards.filter(function(c){return c.rarity==='mythic';});
-        // Big Score is all R/M — approximate 80/20 split if not otherwise known
         var bsRw=bsR.length?(bsChance*0.8):0, bsMw=bsM.length?(bsChance*0.2):0;
         for(var i=0;i<slot.count;i++){
           if(bsR.length) bsR.forEach(function(c){d.push({card:c,probability:bsRw/bsR.length,isFoil:false});});
           if(bsM.length) bsM.forEach(function(c){d.push({card:c,probability:bsMw/bsM.length,isFoil:false});});
-          if(R.length) R.forEach(function(c){d.push({card:c,probability:normChance2*rw/R.length,isFoil:f});});
-          if(M.length) M.forEach(function(c){d.push({card:c,probability:normChance2*mw/M.length,isFoil:f});});
+          if(R.length) R.forEach(function(c){d.push({card:sc(c),probability:normChance2*rw/R.length,isFoil:f});});
+          if(M.length) M.forEach(function(c){d.push({card:sc(c),probability:normChance2*mw/M.length,isFoil:f});});
         }
       } else {
-        // Standard slot handling for all other sets
-        if(!R.length||!M.length)return;
+        if(!R.length&&!M.length)return;
         for(var i=0;i<slot.count;i++){
-          R.forEach(function(c){d.push({card:c,probability:rw/R.length,isFoil:f});});
-          M.forEach(function(c){d.push({card:c,probability:mw/M.length,isFoil:f});});
+          R.forEach(function(c){d.push({card:sc(c),probability:rw/R.length,isFoil:f});});
+          M.forEach(function(c){d.push({card:sc(c),probability:mw/M.length,isFoil:f});});
         }
       }
     });
@@ -660,6 +659,39 @@ label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--text-s
     // Double-faced cards store image_uris on each face
     if (card.card_faces && card.card_faces[0] && card.card_faces[0].image_uris) return card.card_faces[0].image_uris.normal;
     return '';
+  }
+
+  // Groups all R/M printings of a card by name, sorted by collector number (ascending).
+  // Returns Map: cardName → [card, card, ...] where index 0 is the base (regular art) printing.
+  function buildPrintingsMap(setCards) {
+    var map = new Map();
+    setCards.forEach(function(c) {
+      if (c.rarity !== 'rare' && c.rarity !== 'mythic') return;
+      if (!map.has(c.name)) map.set(c.name, []);
+      map.get(c.name).push(c);
+    });
+    map.forEach(function(prints) {
+      prints.sort(function(a, b) {
+        return (parseInt(a.collector_number) || 9999) - (parseInt(b.collector_number) || 9999);
+      });
+    });
+    return map;
+  }
+
+  // From a printings map, extract deduplicated R, M (base printing), and premium map.
+  // Base = lowest collector number (regular art). Premium = highest-priced alternative printing.
+  function buildCardPools(pMap) {
+    var R = [], M = [], premCards = new Map();
+    pMap.forEach(function(prints, name) {
+      var base = prints[0];
+      var prem = prints.length > 1 ? prints.reduce(function(best, p) {
+        return getCardPrice(p, false) > getCardPrice(best, false) ? p : best;
+      }, base) : base;
+      if (base.rarity === 'rare') R.push(base);
+      else if (base.rarity === 'mythic') M.push(base);
+      if (prem !== base) premCards.set(name, prem);
+    });
+    return {R: R, M: M, premCards: premCards};
   }
 
   function extractPT(tl){if(!tl)return null;var i=tl.indexOf('\u2014');if(i===-1)return null;var s=tl.substring(i+1).trim();return s?s.split(/\s+/)[0]:null;}
@@ -828,7 +860,8 @@ label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--text-s
     // Build per-card EV map using getRMDist (probability-weighted).
     // Stores both non-foil and foil prices so the expanded view can show both,
     // and tracks whether any foil slot contributes to this card's EV.
-    var cardEVMap = new Map(); // cardName -> {card, ev, nonFoilPrice, foilPrice, hasFoilSlot}
+    // Build per-card EV map from getRMDist probability distribution.
+    var cardEVMap = new Map(); // cardName -> {ev, hasFoilSlot}
     roster.forEach(function(e) {
       var dist = getRMDist(e.boosterType, e.cards, e.setCode, e.subsetCards||[]);
       dist.forEach(function(d) {
@@ -836,12 +869,7 @@ label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--text-s
         var ev = price * d.probability * e.quantity;
         var key = d.card.name;
         if (!cardEVMap.has(key)) {
-          cardEVMap.set(key, {
-            card: d.card, ev: 0,
-            nonFoilPrice: getCardPrice(d.card, false),
-            foilPrice: getCardPrice(d.card, true),
-            hasFoilSlot: false
-          });
+          cardEVMap.set(key, {ev: 0, hasFoilSlot: false});
         }
         var entry = cardEVMap.get(key);
         entry.ev += ev;
@@ -849,25 +877,56 @@ label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--text-s
       });
     });
 
-    // Collect unique R/M cards
-    var seen = new Set();
-    var uniqueRM = [];
+    // Build printings map for multi-art display: cardName → [{card, num, price, ...}]
+    var allPrintingsMap = new Map();
     roster.forEach(function(e) {
-      e.cards.filter(function(c) { return c.rarity === 'rare' || c.rarity === 'mythic'; }).forEach(function(c) {
-        if (!seen.has(c.name)) { seen.add(c.name); uniqueRM.push(c); }
+      var pMap = buildPrintingsMap(e.cards);
+      pMap.forEach(function(prints, name) {
+        if (!allPrintingsMap.has(name)) allPrintingsMap.set(name, []);
+        var existing = allPrintingsMap.get(name);
+        prints.forEach(function(p) {
+          if (!existing.some(function(x) { return x.collector_number === p.collector_number && x.set === p.set; })) {
+            existing.push(p);
+          }
+        });
+      });
+    });
+    // Sort each group by collector number
+    allPrintingsMap.forEach(function(prints) {
+      prints.sort(function(a, b) {
+        return (parseInt(a.collector_number) || 9999) - (parseInt(b.collector_number) || 9999);
       });
     });
 
-    // Helper to get card detail with EV and foil pricing info
+    // Collect unique R/M cards using base printing (lowest collector #)
+    var seen = new Set();
+    var uniqueRM = [];
+    allPrintingsMap.forEach(function(prints, name) {
+      if (!seen.has(name)) { seen.add(name); uniqueRM.push(prints[0]); }
+    });
+
+    // Helper to get card detail with EV, printings, and foil info
     function cardDetail(c) {
       var entry = cardEVMap.get(c.name);
+      var prints = allPrintingsMap.get(c.name) || [c];
+      var base = prints[0];
       return {
         name: c.name, rarity: c.rarity,
-        price: entry ? entry.nonFoilPrice : getCardPrice(c, false),
-        foilPrice: entry ? entry.foilPrice : getCardPrice(c, true),
+        printings: prints.map(function(p) {
+          return {
+            card: p,
+            num: p.collector_number || '?',
+            price: getCardPrice(p, false),
+            foilPrice: getCardPrice(p, true),
+            imageUrl: getCardImageUrl(p),
+            sfUrl: p.scryfall_uri || ''
+          };
+        }),
+        price: getCardPrice(base, false),
+        foilPrice: getCardPrice(base, true),
         hasFoilSlot: entry ? entry.hasFoilSlot : false,
         ev: entry ? entry.ev : 0,
-        card: c
+        card: base
       };
     }
 
@@ -929,7 +988,8 @@ label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--text-s
   function debounce(fn,ms){var t;return function(){clearTimeout(t);t=setTimeout(fn,ms);};}
   function updBtn(){var h=state.roster.length>0,a=state.roster.every(function(r){return r.status==='cached';});D.at.disabled=!h||!a;D.ce.disabled=!h||!a;D.sb.disabled=!h||!a;}
 
-  // Methodology modal
+  // Help tips and methodology modal
+  $('roster-help-tip').addEventListener('click', function() { toast('Add sets and pack types to build your break pool. Data is fetched from Scryfall when you add a row.', 'info'); });
   $('methodology-btn').addEventListener('click', function() { $('methodology-modal').classList.remove('hidden'); });
   $('close-modal-btn').addEventListener('click', function() { $('methodology-modal').classList.add('hidden'); });
   $('methodology-modal').addEventListener('click', function(e) { if (e.target === $('methodology-modal')) $('methodology-modal').classList.add('hidden'); });
@@ -1096,20 +1156,34 @@ label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--text-s
     var cardsDiv = document.createElement('div');
     cardsDiv.className = 'type-row-cards';
     var cardHtml = '<div style="display:flex;gap:0.5rem;padding:0.25rem 0;font-size:0.7rem;color:var(--text-muted);border-bottom:1px solid var(--border)">' +
-      '<span style="flex:1">Card Name</span><span style="min-width:50px">Rarity</span><span style="min-width:90px;text-align:right">Price</span><span style="min-width:65px;text-align:right">Spot EV</span></div>';
+      '<span style="flex:1">Card Name</span><span style="min-width:50px">Rarity</span><span style="min-width:110px;text-align:right">Prices (per print)</span><span style="min-width:65px;text-align:right">Spot EV</span></div>';
     (item.cards || []).forEach(function(c) {
       var rc = c.rarity === 'mythic' ? 'r-mythic' : 'r-rare';
-      // Show foil price alongside regular price when the card has foil slot contributions.
-      // Format: "$50.00 / ✨$55.00" when foil price differs, or just ✨ marker when same.
-      var hasFoil = c.hasFoilSlot && c.foilPrice > 0;
-      var foilDiffers = hasFoil && Math.abs(c.foilPrice - c.price) > 0.005;
-      var priceHtml = fmt(c.price);
-      if (hasFoil) {
-        priceHtml += foilDiffers
-          ? '<span style="color:#f0c040;font-size:0.7em"> /&nbsp;\u2728' + fmt(c.foilPrice) + '</span>'
-          : '<span style="color:#f0c040;font-size:0.7em">&nbsp;\u2728</span>';
+
+      // Build price column: show each printing's price as a hoverable span.
+      // Hovering a price shows that printing's art. Title shows collector #.
+      var priceHtml = '';
+      if (c.printings && c.printings.length > 1) {
+        priceHtml = c.printings.map(function(p) {
+          var pStr = p.price > 0 ? fmt(p.price) : '\u2014';
+          var imgAttr = p.imageUrl ? ' data-img="' + p.imageUrl + '"' : '';
+          return '<span class="card-print-price" title="#' + esc(String(p.num)) + '"' + imgAttr + '>' + pStr + '</span>';
+        }).join('<span style="color:var(--text-muted);font-size:0.75em"> / </span>');
+        if (c.hasFoilSlot) {
+          priceHtml += '<span style="color:#f0c040;font-size:0.7em">&nbsp;\u2728</span>';
+        }
+      } else {
+        priceHtml = fmt(c.price);
+        var hasFoil = c.hasFoilSlot && c.foilPrice > 0;
+        var foilDiffers = hasFoil && Math.abs(c.foilPrice - c.price) > 0.005;
+        if (hasFoil) {
+          priceHtml += foilDiffers
+            ? '<span style="color:#f0c040;font-size:0.7em"> /&nbsp;\u2728' + fmt(c.foilPrice) + '</span>'
+            : '<span style="color:#f0c040;font-size:0.7em">&nbsp;\u2728</span>';
+        }
       }
-      // Card name: Scryfall link + hover image via data-img attribute
+
+      // Card name: Scryfall link for base printing + hover image
       var imgUrl = getCardImageUrl(c.card);
       var sfUrl = (c.card && c.card.scryfall_uri) ? c.card.scryfall_uri : 'https://scryfall.com/search?q=!' + encodeURIComponent('"' + c.name + '"');
       var imgAttr = imgUrl ? ' data-img="' + imgUrl + '"' : '';
@@ -1224,9 +1298,14 @@ label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--text-s
     var previewImg = document.getElementById('card-preview-img');
     var activeLink = null;
 
+    function findHoverable(e) {
+      if (!e.target.closest) return null;
+      return e.target.closest('.card-name-link[data-img]') || e.target.closest('.card-print-price[data-img]');
+    }
+
     document.addEventListener('mouseover', function(e) {
-      var link = e.target.closest ? e.target.closest('.card-name-link') : null;
-      if (link && link.dataset.img) {
+      var link = findHoverable(e);
+      if (link) {
         activeLink = link;
         previewImg.src = link.dataset.img;
         popup.style.display = 'block';
@@ -1234,7 +1313,7 @@ label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--text-s
     });
 
     document.addEventListener('mouseout', function(e) {
-      var link = e.target.closest ? e.target.closest('.card-name-link') : null;
+      var link = findHoverable(e);
       if (link && link === activeLink) {
         popup.style.display = 'none';
         activeLink = null;
